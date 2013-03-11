@@ -7,17 +7,13 @@ main = do
   Just xml <- xmlNew "editor.glade"
   window <- xmlGetWidget xml castToWindow "window1"
   onDestroy window mainQuit
-  --closeButton <- xmlGetWidget xml castToButton "button2"
-  --onClicked closeButton $ do
-  --  widgetDestroy window
   label <- xmlGetWidget xml castToLabel "label1"
-  --entry <- xmlGetWidget xml castToEntry "entry1"
-  toolButton1 <- xmlGetWidget xml castToButton "toolbutton1"
-  toolButton2 <- xmlGetWidget xml castToButton "toolbutton2"
-  toolButton3 <- xmlGetWidget xml castToButton "toolbutton3"
-  toolButton4 <- xmlGetWidget xml castToButton "toolbutton4"
+  button1 <- xmlGetWidget xml castToButton "button1"
+  button2 <- xmlGetWidget xml castToButton "button2"
+  button3 <- xmlGetWidget xml castToButton "button3"
+  button4 <- xmlGetWidget xml castToButton "button4"
   
-  onClicked toolButton1 $ do
+  onClicked button1 $ do
     set label [ labelText := "Hello " ]
   widgetShowAll window
   mainGUI
