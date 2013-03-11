@@ -14,6 +14,8 @@ main = do
   button4 <- xmlGetWidget xml castToButton "button4"
   
   onClicked button1 $ do
+    fcd <- xmlGetWidget xml castToDialog "filechooserdialog1"
+    result <- dialogRun fcd
     set label [ labelText := "Hello " ]
   widgetShowAll window
   mainGUI
