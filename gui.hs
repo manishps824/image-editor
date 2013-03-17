@@ -1,13 +1,15 @@
 module Main where
 import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Glade
-
+import Graphics.Filters.GD
+import Graphics.GD
+import System.FilePath.Posix
 main = do
   initGUI
   Just xml <- xmlNew "editor.glade"
   window <- xmlGetWidget xml castToWindow "window1" -- this is the main window
   set window [windowTitle := "Image Editor",windowDefaultWidth := 1300,windowDefaultHeight := 600]
-  button1 <- xmlGetWidget xml castToButton "button1" -- to open a image
+  button1 <- xmlGetWidget xml castToButton "button1"
   button2 <- xmlGetWidget xml castToButton "button2"
   button3 <- xmlGetWidget xml castToButton "button3"
   button4 <- xmlGetWidget xml castToButton "button4"
@@ -69,11 +71,22 @@ main = do
         case file of 
           Just fpath -> do
             imageSetFromFile canvas fpath -- render the image from fpath on the canvas object
-            putStrLn $ "Opening File: "++fpath
+            putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
-  
-  --onClicked open $ do
+
+  onClicked button1 $ do
+    path <- get canvas imageFile -- from the canvas object get its location attr i.e. filename
+    basename <- return (takeBaseName path)
+    do
+      putStrLn $ "BOOM " ++ basename
+    myimg <- loadJpegFile path -- load image from its original location as a GD image
+    saveJpegFile (-1) ("./"++basename++"temp.jpg") myimg -- save a local temp copy at a predefined location
+    myimg <- loadJpegFile ("./"++basename++"temp.jpg") -- load image from this location 
+    grayscale myimg -- APPLY EFFECT
+    saveJpegFile (-1) ("./"++basename++"temp.jpg") myimg
+    imageSetFromFile canvas ("./"++basename++"temp.jpg")
+    
     {--
     fch <- fileChooserWidgetNew FileChooserActionOpen
     widgetShow fch
