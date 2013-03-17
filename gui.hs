@@ -4,6 +4,7 @@ import Graphics.UI.Gtk.Glade
 import Graphics.Filters.GD
 import Graphics.GD
 import System.FilePath.Posix
+import System.Directory -- for doesFileExist
 main = do
   initGUI
   Just xml <- xmlNew "editor.glade"
@@ -61,7 +62,7 @@ main = do
   mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa]
   -------------------------------------------------------------------------------------------
   onActionActivate opna $ do
-    fcd <- fileChooserDialogNew (Just "Save As...Dialog") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
+    fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
     widgetShow fcd
     response <- dialogRun fcd
     case response of
@@ -74,19 +75,30 @@ main = do
             putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
-
+  -------------------------------------------------------------------------------------------  
+  
   onClicked button1 $ do
-    path <- get canvas imageFile -- from the canvas object get its location attr i.e. filename
-    basename <- return (takeBaseName path)
+    initpath <- get canvas imageFile
+    basename <- return (takeBaseName initpath)
     do
+      putStrLn $ initpath
       putStrLn $ "BOOM " ++ basename
-    myimg <- loadJpegFile path -- load image from its original location as a GD image
-    saveJpegFile (-1) ("./"++basename++"temp.jpg") myimg -- save a local temp copy at a predefined location
-    myimg <- loadJpegFile ("./"++basename++"temp.jpg") -- load image from this location 
-    grayscale myimg -- APPLY EFFECT
-    saveJpegFile (-1) ("./"++basename++"temp.jpg") myimg
-    imageSetFromFile canvas ("./"++basename++"temp.jpg")
-    
+      rv <- doesFileExist ("./"++basename++".jpg") 
+      case rv of
+        True -> do 
+          putStrLn "temp file exists! No need for another"
+          myimg <- loadJpegFile ("./"++basename++".jpg") -- load image from this location 
+          grayscale myimg -- APPLY EFFECT
+          saveJpegFile (-1) ("./"++basename++".jpg") myimg
+          imageSetFromFile canvas ("./"++basename++".jpg")
+        False -> do        
+          putStrLn "temp file created!"
+          myimg <- loadJpegFile initpath -- load image from its original location as a GD image
+          saveJpegFile (-1) ("./"++basename++".jpg") myimg -- save a local temp copy at a predefined location
+          grayscale myimg -- APPLY EFFECT
+          saveJpegFile (-1) ("./"++basename++".jpg") myimg
+          imageSetFromFile canvas ("./"++basename++".jpg")
+   
     {--
     fch <- fileChooserWidgetNew FileChooserActionOpen
     widgetShow fch
