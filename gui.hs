@@ -91,6 +91,7 @@ main = do
             -- it should save the image in the temp file at the location !!!
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
+  --------------------------------------------------------------------------------------------  
   onActionActivate hlpa $ do
     dia <- dialogNew
     set dia [windowTitle := "Image-Editor 1.0 Help",windowDefaultWidth := 600, windowDefaultHeight := 600]
