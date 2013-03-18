@@ -110,7 +110,7 @@
                       <widget class="GtkImage" id="image1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="pixbuf">stock.jpg</property>
+                        <property name="pixbuf">images.jpeg</property>
                       </widget>
                     </child>
                   </widget>

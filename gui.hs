@@ -4,6 +4,7 @@ import Graphics.UI.Gtk.Glade
 import Graphics.Filters.GD
 import Graphics.GD
 import System.FilePath.Posix
+import Data.IORef
 import System.Directory -- for doesFileExist
 main = do
   initGUI
@@ -16,6 +17,7 @@ main = do
   button4 <- xmlGetWidget xml castToButton "button4"
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
+  scrolledwindow1 <- xmlGetWidget xml castToScrolledWindow "scrolledwindow1"
   
   fma <- actionNew "FMA" "File" Nothing Nothing
   ema <- actionNew "EMA" "Edit" Nothing Nothing
@@ -60,6 +62,8 @@ main = do
      --define the action handler for each action
      --right now it is same for each so using mapM_
   mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa]
+  
+  expand <- newIORef True
   -------------------------------------------------------------------------------------------
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
@@ -76,7 +80,18 @@ main = do
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
   -------------------------------------------------------------------------------------------  
-  
+  onClicked button2 $ do
+    initpath <- get canvas imageFile
+    exp <- readIORef expand
+    if exp then do
+      writeIORef expand False
+      pix <- pixbufNewFromFileAtScale initpath 1000 1000 True 
+      imageSetFromPixbuf canvas pix
+      putStrLn "DONE"
+    else do
+      writeIORef expand True
+      imageSetFromFile canvas initpath 
+--------------------------------------------------------------------- 
   onClicked button1 $ do
     initpath <- get canvas imageFile
     basename <- return (takeBaseName initpath)
@@ -99,7 +114,11 @@ main = do
           saveJpegFile (-1) ("./"++basename++".jpg") myimg
           imageSetFromFile canvas ("./"++basename++".jpg")
    
-    {--
+    
+
+
+
+{--
     fch <- fileChooserWidgetNew FileChooserActionOpen
     widgetShow fch
     img <- imageNew
