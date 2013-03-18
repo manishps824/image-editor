@@ -1,5 +1,5 @@
 ISSUES
--- get size of scolledwindow to resize
--- store the filename of current file 
+--Resizing code has a problem. The image object that resize handles is different from the image object on which effects are applied.
+ 
 manishihireadme
 another trial
