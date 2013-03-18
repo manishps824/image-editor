@@ -3,7 +3,7 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Glade
 import Graphics.Filters.GD
 import Graphics.GD
-import System.FilePath.Posix
+import System.FilePath.Posix -- for takeBaseName
 import System.Directory -- for doesFileExist
 main = do
   initGUI
@@ -76,7 +76,31 @@ main = do
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
   -------------------------------------------------------------------------------------------  
-  
+  onActionActivate sava $ do
+    fcd <- fileChooserDialogNew (Just "Save File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Save", ResponseAccept)]
+    widgetShow fcd
+    response <- dialogRun fcd
+    case response of
+      ResponseCancel -> putStrLn "Cancel" -- user pressed Cancel
+      ResponseAccept -> do 
+        file <- fileChooserGetFilename fcd -- get filename of the file that has been selected
+        case file of 
+          Just fpath -> do
+            putStrLn $ "Saving File: " ++ fpath
+            -- call save function here type sig shld be :: filepath -> IO ()
+            -- it should save the image in the temp file at the location !!!
+          Nothing -> putStrLn "error: No file was selected"
+    widgetDestroy fcd
+  onActionActivate hlpa $ do
+    dia <- dialogNew
+    set dia [windowTitle := "Image-Editor 1.0 Help",windowDefaultWidth := 600, windowDefaultHeight := 600]
+    upbox <- dialogGetUpper dia
+    (dlabel,dframe)<- myLabelWithFrameNew
+    boxPackStart upbox dframe PackNatural 0
+    labelSetText dlabel "This is the help text"
+    widgetShowAll dia
+    
+  -------------------------------------------------------------------------------------------    
   onClicked button1 $ do
     initpath <- get canvas imageFile
     basename <- return (takeBaseName initpath)
@@ -164,3 +188,10 @@ uiDecl=  "<ui>\
 
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
+myLabelWithFrameNew :: IO (Label,Frame)
+myLabelWithFrameNew = do
+  label <- labelNew Nothing
+  frame <- frameNew
+  containerAdd frame label
+  frameSetShadowType frame ShadowOut
+  return (label, frame)
