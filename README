@@ -1,6 +1,7 @@
 ISSUES
---Resizing code has a problem. The image object that resize handles is different from the image object on which effects are applied.
- 
+-- get size of scolledwindow to resize
+-- store the filename of current file 
+There is an issue with resizing. Image Object used by resizing operation is different from image object used for applying effects. Probably will have to save the resized image and then read again and apply effects.
 manishihireadme
 another trial
 ravi test
