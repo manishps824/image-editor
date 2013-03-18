@@ -59,7 +59,7 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa]
+  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta]
   -------------------------------------------------------------------------------------------
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
@@ -149,7 +149,7 @@ main = do
     --}
     
   widgetShowAll window  
-  onDestroy window mainQuit
+  onDestroy window mainQuit -- not quite correct. What if edited image is in buffer ? define a function here. this function will aagain be used to define the exit action made by mps
   mainGUI
   
      
