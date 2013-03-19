@@ -2,6 +2,12 @@ ISSUES
 -- get size of scolledwindow to resize
 -- store the filename of current file 
 There is an issue with resizing. Image Object used by resizing operation is different from image object used for applying effects. Probably will have to save the resized image and then read again and apply effects.
+
+UNDO added
+Semantics of undo
+- Every effect is manipulated to be a function of type Image -> IO (), so that a list of all previous actions can be stored. When undo is done file is read from the original location and then all the actions except the last action are applied and rendered. The tmp file is also changed.
+Right now a recursive version is added for this known as applyeffects. An implementation using map can be added.
+
 manishihireadme
 another trial
 ravi test

@@ -31,6 +31,7 @@ main = do
   copa <- actionNew "COPA" "Copy"  (Just "Copy") (Just stockCopy)
   psta <- actionNew "PSTA" "Paste" (Just "Paste") (Just stockPaste)
   hlpa <- actionNew "HLPA" "Help"  (Just "help") (Just stockHelp)
+  unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockUndo)
   --create an action group with name AGR
   --actionGroupNew :: String -> IO ActionGroup
   agr <- actionGroupNew "AGR"
@@ -39,7 +40,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -57,18 +58,17 @@ main = do
         (Just x) -> x
         Nothing -> error "Cannot get toolbar from string." 
   boxPackStart menubox toolbar PackNatural 0
-  actionSetSensitive cuta False
+  --actionSetSensitive cuta False
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-<<<<<<< HEAD:gui.hs
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta]
-=======
   mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa]
   
   expand <- newIORef True
->>>>>>> 958282a60a69b4116147008dcbe0d6ced59e26a1:resizeAdded.hs
-  -------------------------------------------------------------------------------------------
+  changeList <- newIORef []
+  fileName <- newIORef ""
+  
+------------------------------------------------------------------------------------------
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
     widgetShow fcd
@@ -79,73 +79,68 @@ main = do
         file <- fileChooserGetFilename fcd -- get filename of the file that has been selected
         case file of 
           Just fpath -> do
+            writeIORef fileName fpath
             imageSetFromFile canvas fpath -- render the image from fpath on the canvas object
             putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
-  -------------------------------------------------------------------------------------------  
-<<<<<<< HEAD:gui.hs
-  onActionActivate sava $ do
-    fcd <- fileChooserDialogNew (Just "Save File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Save", ResponseAccept)]
-    widgetShow fcd
-    response <- dialogRun fcd
-    case response of
-      ResponseCancel -> putStrLn "Cancel" -- user pressed Cancel
-      ResponseAccept -> do 
-        file <- fileChooserGetFilename fcd -- get filename of the file that has been selected
-        case file of 
-          Just fpath -> do
-            putStrLn $ "Saving File: " ++ fpath
-            -- call save function here type sig shld be :: filepath -> IO ()
-            -- it should save the image in the temp file at the location !!!
-          Nothing -> putStrLn "error: No file was selected"
-    widgetDestroy fcd
-  --------------------------------------------------------------------------------------------  
-  onActionActivate hlpa $ do
-    dia <- dialogNew
-    set dia [windowTitle := "Image-Editor 1.0 Help",windowDefaultWidth := 600, windowDefaultHeight := 600]
-    upbox <- dialogGetUpper dia
-    (dlabel,dframe)<- myLabelWithFrameNew
-    boxPackStart upbox dframe PackNatural 0
-    labelSetText dlabel "This is the help text"
-    widgetShowAll dia
     
-  -------------------------------------------------------------------------------------------    
-=======
+--------------------------------------------------------------------------------------------------
+  --temporarily model cut as undo
+  onActionActivate unda $ do    
+    effectList <- readIORef changeList
+    originalPath <- readIORef fileName
+    path <- get canvas imageFile
+    newimg <- applyEffects effectList (loadJpegFile originalPath) -- function that will apply all the effects present in the list again
+    saveJpegFile (-1) path newimg
+    imageSetFromFile canvas path
+  
+  
+-------------------------------------------------------------------------------------------  
   onClicked button2 $ do
-    initpath <- get canvas imageFile
     exp <- readIORef expand
-    if exp then do
-      writeIORef expand False
-      pix <- pixbufNewFromFileAtScale initpath 1000 1000 True 
-      imageSetFromPixbuf canvas pix
-      putStrLn "DONE"
-    else do
-      writeIORef expand True
-      imageSetFromFile canvas initpath 
+    case exp of
+         True -> do
+           path <- get canvas imageFile  --find the filename
+           basename <- return (takeBaseName path) --take the name only not extension
+           writeIORef expand False -- toggle
+           pix <- pixbufNewFromFileAtScale path 1000 1000 True 
+           pixbufSave pix (basename++".jpeg") "jpeg" [] 
+           --imageSetFromPixbuf canvas pix
+           imageSetFromFile canvas (basename++".jpeg")
+           putStrLn "DONE"
+         False -> do
+           --here you need to ensure that all effects applied till that point are reapplied
+           originalFile <- readIORef fileName
+           writeIORef expand True
+           imageSetFromFile canvas originalFile
+ 
 --------------------------------------------------------------------- 
->>>>>>> 958282a60a69b4116147008dcbe0d6ced59e26a1:resizeAdded.hs
   onClicked button1 $ do
+    opList <- readIORef changeList 
+    writeIORef changeList (opList++[grayscale])
     initpath <- get canvas imageFile
     basename <- return (takeBaseName initpath)
     do
+      f <- readIORef fileName
+      putStrLn $ "Intial file Name:" ++ f
       putStrLn $ initpath
       putStrLn $ "BOOM " ++ basename
-      rv <- doesFileExist ("./"++basename++".jpg") 
+      rv <- doesFileExist ("./"++basename++".jpeg") 
       case rv of
         True -> do 
           putStrLn "temp file exists! No need for another"
-          myimg <- loadJpegFile ("./"++basename++".jpg") -- load image from this location 
+          myimg <- loadJpegFile ("./"++basename++".jpeg") -- load image from this location 
           grayscale myimg -- APPLY EFFECT
-          saveJpegFile (-1) ("./"++basename++".jpg") myimg
-          imageSetFromFile canvas ("./"++basename++".jpg")
+          saveJpegFile (-1) ("./"++basename++".jpeg") myimg
+          imageSetFromFile canvas ("./"++basename++".jpeg")
         False -> do        
           putStrLn "temp file created!"
           myimg <- loadJpegFile initpath -- load image from its original location as a GD image
-          saveJpegFile (-1) ("./"++basename++".jpg") myimg -- save a local temp copy at a predefined location
+          saveJpegFile (-1) ("./"++basename++".jpeg") myimg -- save a local temp copy at a predefined location
           grayscale myimg -- APPLY EFFECT
-          saveJpegFile (-1) ("./"++basename++".jpg") myimg
-          imageSetFromFile canvas ("./"++basename++".jpg")
+          saveJpegFile (-1) ("./"++basename++".jpeg") myimg
+          imageSetFromFile canvas ("./"++basename++".jpeg")
    
     
 
@@ -176,7 +171,7 @@ main = do
     --}
     
   widgetShowAll window  
-  onDestroy window mainQuit -- not quite correct. What if edited image is in buffer ? define a function here. this function will aagain be used to define the exit action made by mps
+  onDestroy window mainQuit
   mainGUI
   
      
@@ -194,6 +189,7 @@ uiDecl=  "<ui>\
 \              <menuitem action=\"CUTA\" />\
 \              <menuitem action=\"COPA\" />\
 \              <menuitem action=\"PSTA\" />\
+\              <menuitem action=\"UNDA\" />\
 \           </menu>\
 \            <separator />\
 \            <menu action=\"HMA\">\
@@ -209,6 +205,7 @@ uiDecl=  "<ui>\
 \            <toolitem action=\"CUTA\" />\
 \            <toolitem action=\"COPA\" />\
 \            <toolitem action=\"PSTA\" />\
+\            <toolitem action=\"UNDA\" />\
 \            <separator />\
 \            <toolitem action=\"HLPA\" />\
 \           </toolbar>\
@@ -216,3 +213,10 @@ uiDecl=  "<ui>\
 
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
+                                  
+applyEffects :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
+applyEffects [a] img = img
+applyEffects (x:xs) img = do
+  tmpimg <- img
+  x tmpimg
+  applyEffects xs (return tmpimg)
