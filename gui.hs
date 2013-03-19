@@ -32,6 +32,9 @@ main = do
   psta <- actionNew "PSTA" "Paste" (Just "Paste") (Just stockPaste)
   hlpa <- actionNew "HLPA" "Help"  (Just "help") (Just stockHelp)
   unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockUndo)
+  zina <- actionNew "ZINA" "Zoom In" (Just "Zoom In") (Just stockZoomIn)
+  zoua <- actionNew "ZOUA" "Zoom Out" (Just "Zoom Out") (Just stockZoomOut)
+  
   --create an action group with name AGR
   --actionGroupNew :: String -> IO ActionGroup
   agr <- actionGroupNew "AGR"
@@ -40,7 +43,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -62,15 +65,15 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa]
+  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua] -- add any new button for menubar here for rendering
   
   expand <- newIORef True
   changeList <- newIORef []
   fileName <- newIORef ""
-  
+  tmpFileName <- newIORef ""
 ------------------------------------------------------------------------------------------
   onActionActivate opna $ do
-    fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)]
+    fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
     widgetShow fcd
     response <- dialogRun fcd
     case response of
@@ -79,24 +82,29 @@ main = do
         file <- fileChooserGetFilename fcd -- get filename of the file that has been selected
         case file of 
           Just fpath -> do
-            writeIORef fileName fpath
-            imageSetFromFile canvas fpath -- render the image from fpath on the canvas object
+            writeIORef fileName fpath -- save original file location
+            myimg <- loadJpegFile fpath  -- load image from this location 
+            basename <- return (takeBaseName fpath)
+            saveJpegFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
+            writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
+            imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
             putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
     
 --------------------------------------------------------------------------------------------------
-  --temporarily model cut as undo
-  onActionActivate unda $ do    
+  
+  onActionActivate unda $ do    -- user pressed undo button
     effectList <- readIORef changeList
     originalPath <- readIORef fileName
-    path <- get canvas imageFile
-    newimg <- applyEffects effectList (loadJpegFile originalPath) -- function that will apply all the effects present in the list again
-    saveJpegFile (-1) path newimg
-    imageSetFromFile canvas path
+    tmpPath <- readIORef tmpFileName
+    newImg <- undoLast effectList (loadJpegFile originalPath) -- function that will apply all the effects present in the list again
+    saveJpegFile (-1) tmpPath newImg
+    imageSetFromFile canvas tmpPath
   
   
 -------------------------------------------------------------------------------------------  
+  {--
   onClicked button2 $ do
     exp <- readIORef expand
     case exp of
@@ -114,33 +122,37 @@ main = do
            originalFile <- readIORef fileName
            writeIORef expand True
            imageSetFromFile canvas originalFile
- 
+ --}
 --------------------------------------------------------------------- 
+  onActionActivate zina $ do         
+    ---initpath <- get canvas imageFile
+    pix <- imageGetPixbuf canvas
+    w <- pixbufGetWidth pix
+    h <- pixbufGetHeight pix
+    putStrLn $ show $ truncate $ 1.1* fromIntegral w
+    pix <- pixbufScaleSimple pix (truncate $ 1.1 * (fromIntegral w)) (truncate $ 1.1 * (fromIntegral h)) InterpBilinear
+    imageSetFromPixbuf canvas pix
+    
+---------------------------------------------------------------------            
+  onActionActivate zoua $ do         
+    ---initpath <- get canvas imageFile
+    pix <- imageGetPixbuf canvas
+    w <- pixbufGetWidth pix
+    h <- pixbufGetHeight pix
+    putStrLn $ show $ truncate $ 0.9 * fromIntegral w
+    pix <- pixbufScaleSimple pix (truncate $ 0.9 * (fromIntegral w)) (truncate $ 0.9 * (fromIntegral h)) InterpBilinear
+    imageSetFromPixbuf canvas pix  
+
   onClicked button1 $ do
     opList <- readIORef changeList 
     writeIORef changeList (opList++[grayscale])
-    initpath <- get canvas imageFile
-    basename <- return (takeBaseName initpath)
     do
-      f <- readIORef fileName
-      putStrLn $ "Intial file Name:" ++ f
-      putStrLn $ initpath
-      putStrLn $ "BOOM " ++ basename
-      rv <- doesFileExist ("./"++basename++".jpeg") 
-      case rv of
-        True -> do 
-          putStrLn "temp file exists! No need for another"
-          myimg <- loadJpegFile ("./"++basename++".jpeg") -- load image from this location 
-          grayscale myimg -- APPLY EFFECT
-          saveJpegFile (-1) ("./"++basename++".jpeg") myimg
-          imageSetFromFile canvas ("./"++basename++".jpeg")
-        False -> do        
-          putStrLn "temp file created!"
-          myimg <- loadJpegFile initpath -- load image from its original location as a GD image
-          saveJpegFile (-1) ("./"++basename++".jpeg") myimg -- save a local temp copy at a predefined location
-          grayscale myimg -- APPLY EFFECT
-          saveJpegFile (-1) ("./"++basename++".jpeg") myimg
-          imageSetFromFile canvas ("./"++basename++".jpeg")
+      tmpFile <- readIORef tmpFileName
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadJpegFile tmpFile -- load image from this location 
+      grayscale myimg -- APPLY EFFECT
+      saveJpegFile (-1) tmpFile myimg
+      imageSetFromFile canvas tmpFile
    
     
 
@@ -190,6 +202,8 @@ uiDecl=  "<ui>\
 \              <menuitem action=\"COPA\" />\
 \              <menuitem action=\"PSTA\" />\
 \              <menuitem action=\"UNDA\" />\
+\              <menuitem action=\"ZINA\" />\
+\              <menuitem action=\"ZOUA\" />\
 \           </menu>\
 \            <separator />\
 \            <menu action=\"HMA\">\
@@ -206,6 +220,8 @@ uiDecl=  "<ui>\
 \            <toolitem action=\"COPA\" />\
 \            <toolitem action=\"PSTA\" />\
 \            <toolitem action=\"UNDA\" />\
+\            <toolitem action=\"ZINA\" />\
+\            <toolitem action=\"ZOUA\" />\
 \            <separator />\
 \            <toolitem action=\"HLPA\" />\
 \           </toolbar>\
@@ -214,9 +230,10 @@ uiDecl=  "<ui>\
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
                                   
-applyEffects :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
-applyEffects [a] img = img
-applyEffects (x:xs) img = do
+undoLast :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
+undoLast [] img = img
+undoLast [a] img = img
+undoLast (x:xs) img = do
   tmpimg <- img
   x tmpimg
-  applyEffects xs (return tmpimg)
+  undoLast xs (return tmpimg)
