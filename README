@@ -8,6 +8,11 @@ Semantics of undo
 - Every effect is manipulated to be a function of type Image -> IO (), so that a list of all previous actions can be stored. When undo is done file is read from the original location and then all the actions except the last action are applied and rendered. The tmp file is also changed.
 Right now a recursive version is added for this known as applyeffects. An implementation using map can be added.
 
+PROBLEMS WITH CONTRAST AND BRIGHTNESS
+The ok button presumes that tempfile1 is there. But it may not be. So handle that case.
+The window should probably be changed to widget so that it can be destroyed via ok and cancel buttons.
+
+
 manishihireadme
 another trial
 ravi test
