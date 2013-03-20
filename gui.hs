@@ -71,6 +71,7 @@ main = do
   changeList <- newIORef []
   fileName <- newIORef ""
   tmpFileName <- newIORef ""
+  tmpFileName1 <- newIORef ""
 ------------------------------------------------------------------------------------------
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
@@ -87,6 +88,7 @@ main = do
             basename <- return (takeBaseName fpath)
             saveJpegFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
             writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
+            writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
             imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
             putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
@@ -153,6 +155,83 @@ main = do
       grayscale myimg -- APPLY EFFECT
       saveJpegFile (-1) tmpFile myimg
       imageSetFromFile canvas tmpFile
+  onClicked button2 $ do
+    bwindow  <- windowNew
+    set bwindow [windowTitle := "Brightness-Contrast",
+              windowDefaultHeight := 200,
+              windowDefaultWidth := 300]
+    mainbox <- vBoxNew False 10
+    containerAdd bwindow mainbox
+    containerSetBorderWidth mainbox 10
+    box1 <- vBoxNew False 0
+    boxPackStart mainbox box1 PackNatural 0
+    adj1 <- adjustmentNew 0.0 (-100.0) 100.0 1.0 1.0 1.0
+    adj2 <- adjustmentNew 0.0 (-100.0) 100.0 1.0 1.0 1.0
+    hsc1 <- hScaleNew adj1
+    hsc2 <- hScaleNew adj2
+  
+    hbox1 <- hBoxNew False 0
+    containerSetBorderWidth hbox1 10
+    label1 <- labelNew (Just "Brightness:")
+    boxPackStart hbox1 label1 PackNatural 0
+    boxPackStart hbox1 hsc1 PackGrow 0
+    hbox2 <- hBoxNew False 0
+    containerSetBorderWidth hbox2 10
+    label2 <- labelNew (Just "Contrast:")
+    boxPackStart hbox2 label2 PackNatural 0
+    boxPackStart hbox2 hsc2 PackGrow 0
+  
+    hbox3 <- hBoxNew False 0
+    containerSetBorderWidth hbox3 10
+    okbutton <-buttonNewWithLabel "OK"
+    onClicked okbutton $ do
+      tmpFile1 <- readIORef tmpFileName1
+      tmpFile <- readIORef tmpFileName
+      myimg <- loadJpegFile tmpFile1
+      saveJpegFile (-1) tmpFile myimg
+      removeFile tmpFile1
+      mainQuit
+ 
+    cancelButton <- buttonNewWithLabel "Cancel"
+    onClicked cancelButton $ do
+      tmpFile1 <-readIORef tmpFileName1
+      removeFile tmpFile1
+      mainQuit
+    
+    boxPackStart hbox3 okbutton PackGrow 0
+    boxPackStart hbox3 cancelButton PackGrow 0
+    
+  
+    boxPackStart box1 hbox1 PackNatural 0
+    boxPackStart box1 hbox2 PackNatural 0
+    boxPackStart box1 hbox3 PackNatural 0
+  
+    boxPackStart mainbox box1 PackGrow 0
+    onValueChanged adj1 $ do 
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj1
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadJpegFile tmpFile -- load image from this location 
+      brightness myimg $ truncate val
+      saveJpegFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+      
+        
+    onValueChanged adj2 $ do
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj2
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadJpegFile tmpFile -- load image from this location 
+      contrast myimg $ truncate val
+      saveJpegFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+      
+    widgetShowAll bwindow
+    onDestroy bwindow mainQuit
+    mainGUI
+      
    
     
 
