@@ -71,7 +71,8 @@ main = do
   changeList <- newIORef []
   fileName <- newIORef ""
   tmpFileName <- newIORef ""
-  tmpFileName1 <- newIORef ""
+  tmpFileName1 <- newIORef "" -- why Amitesh??
+  zoomAmount <- newIORef 0
 ------------------------------------------------------------------------------------------
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
@@ -128,23 +129,37 @@ main = do
 --------------------------------------------------------------------- 
   onActionActivate zina $ do         
     ---initpath <- get canvas imageFile
-    pix <- imageGetPixbuf canvas
-    w <- pixbufGetWidth pix
-    h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ 1.1* fromIntegral w
-    pix <- pixbufScaleSimple pix (truncate $ 1.1 * (fromIntegral w)) (truncate $ 1.1 * (fromIntegral h)) InterpBilinear
-    imageSetFromPixbuf canvas pix
-    
+    zAmnt <- readIORef zoomAmount
+    writeIORef zoomAmount (zAmnt+1)
+    zAmnt <- readIORef zoomAmount
+    case zAmnt > 0 of 
+      _ -> do
+        tmpFile <- readIORef tmpFileName
+        pix <- pixbufNewFromFile tmpFile
+        w <- pixbufGetWidth pix
+        h <- pixbufGetHeight pix
+        putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w
+        pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear
+        imageSetFromPixbuf canvas pix
+      False -> putStrLn "Whoops!"
 ---------------------------------------------------------------------            
   onActionActivate zoua $ do         
     ---initpath <- get canvas imageFile
-    pix <- imageGetPixbuf canvas
-    w <- pixbufGetWidth pix
-    h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ 0.9 * fromIntegral w
-    pix <- pixbufScaleSimple pix (truncate $ 0.9 * (fromIntegral w)) (truncate $ 0.9 * (fromIntegral h)) InterpBilinear
-    imageSetFromPixbuf canvas pix  
-
+    zAmnt <- readIORef zoomAmount
+    writeIORef zoomAmount (zAmnt-1)
+    zAmnt <- readIORef zoomAmount
+    putStrLn $ show zAmnt
+    case zAmnt < 0 of
+      _ -> do
+        tmpFile <- readIORef tmpFileName
+        pix <- pixbufNewFromFile tmpFile
+        w <- pixbufGetWidth pix
+        h <- pixbufGetHeight pix
+        putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w
+        pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear
+        imageSetFromPixbuf canvas pix  
+      False -> putStrLn "Whoops zout"
+      
   onClicked button1 $ do
     opList <- readIORef changeList 
     writeIORef changeList (opList++[grayscale])
@@ -155,6 +170,7 @@ main = do
       grayscale myimg -- APPLY EFFECT
       saveJpegFile (-1) tmpFile myimg
       imageSetFromFile canvas tmpFile
+  -------------------------------------------------------------------    
   onClicked button2 $ do
     bwindow  <- windowNew
     set bwindow [windowTitle := "Brightness-Contrast",
@@ -316,3 +332,9 @@ undoLast (x:xs) img = do
   tmpimg <- img
   x tmpimg
   undoLast xs (return tmpimg)
+
+{--
+abs :: Int -> Int
+abs n | n >= 0    = n
+      | otherwise = -n
+--}
