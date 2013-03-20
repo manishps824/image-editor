@@ -127,32 +127,37 @@ main = do
            imageSetFromFile canvas originalFile
  --}
 --------------------------------------------------------------------- 
+  {--
+  For zoom in/out we will start with the temp image and then zoom-in according to the zoom amount.
+  The sign of the exponent takes care of zoom-in/out
+  --}
   onActionActivate zina $ do         
+    zAmnt <- readIORef zoomAmount -- read the zoom amount
+    writeIORef zoomAmount (zAmnt+1) -- increment by one and write it
     zAmnt <- readIORef zoomAmount
-    writeIORef zoomAmount (zAmnt+1)
-    zAmnt <- readIORef zoomAmount
-    tmpFile <- readIORef tmpFileName
-    pix <- pixbufNewFromFile tmpFile
+    putStrLn $ show zAmnt
+    tmpFile <- readIORef tmpFileName -- read the temp file location
+    pix <- pixbufNewFromFile tmpFile -- get pixbuf from the temp file
     w <- pixbufGetWidth pix
     h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w
-    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear
-    imageSetFromPixbuf canvas pix
+    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w -- for debugging
+    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
+    imageSetFromPixbuf canvas pix -- finally set the scaled pixbuf to canvas
 
 ---------------------------------------------------------------------            
   onActionActivate zoua $ do         
-    zAmnt <- readIORef zoomAmount
-    writeIORef zoomAmount (zAmnt-1)
-    zAmnt <- readIORef zoomAmount
+    zAmnt <- readIORef zoomAmount -- read the zoom amount
+    writeIORef zoomAmount (zAmnt-1) -- decrement by one and write it
+    zAmnt <- readIORef zoomAmount 
     putStrLn $ show zAmnt
-    tmpFile <- readIORef tmpFileName
-    pix <- pixbufNewFromFile tmpFile
+    tmpFile <- readIORef tmpFileName -- read the temp file location
+    pix <- pixbufNewFromFile tmpFile -- get pixbuf from the temp file
     w <- pixbufGetWidth pix
     h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w
-    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear
-    imageSetFromPixbuf canvas pix  
-
+    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w -- for debugging
+    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
+    imageSetFromPixbuf canvas pix  -- finally set the scaled pixbuf to canvas
+    
       
   onClicked button1 $ do
     opList <- readIORef changeList 
