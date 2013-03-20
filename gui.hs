@@ -128,37 +128,31 @@ main = do
  --}
 --------------------------------------------------------------------- 
   onActionActivate zina $ do         
-    ---initpath <- get canvas imageFile
     zAmnt <- readIORef zoomAmount
     writeIORef zoomAmount (zAmnt+1)
     zAmnt <- readIORef zoomAmount
-    case zAmnt > 0 of 
-      _ -> do
-        tmpFile <- readIORef tmpFileName
-        pix <- pixbufNewFromFile tmpFile
-        w <- pixbufGetWidth pix
-        h <- pixbufGetHeight pix
-        putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w
-        pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear
-        imageSetFromPixbuf canvas pix
-      False -> putStrLn "Whoops!"
+    tmpFile <- readIORef tmpFileName
+    pix <- pixbufNewFromFile tmpFile
+    w <- pixbufGetWidth pix
+    h <- pixbufGetHeight pix
+    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w
+    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear
+    imageSetFromPixbuf canvas pix
+
 ---------------------------------------------------------------------            
   onActionActivate zoua $ do         
-    ---initpath <- get canvas imageFile
     zAmnt <- readIORef zoomAmount
     writeIORef zoomAmount (zAmnt-1)
     zAmnt <- readIORef zoomAmount
     putStrLn $ show zAmnt
-    case zAmnt < 0 of
-      _ -> do
-        tmpFile <- readIORef tmpFileName
-        pix <- pixbufNewFromFile tmpFile
-        w <- pixbufGetWidth pix
-        h <- pixbufGetHeight pix
-        putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w
-        pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear
-        imageSetFromPixbuf canvas pix  
-      False -> putStrLn "Whoops zout"
+    tmpFile <- readIORef tmpFileName
+    pix <- pixbufNewFromFile tmpFile
+    w <- pixbufGetWidth pix
+    h <- pixbufGetHeight pix
+    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w
+    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear
+    imageSetFromPixbuf canvas pix  
+
       
   onClicked button1 $ do
     opList <- readIORef changeList 
