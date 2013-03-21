@@ -98,10 +98,10 @@ main = do
 --------------------------------------------------------------------------------------------------
   
   onActionActivate unda $ do    -- user pressed undo button
-    effectList <- readIORef changeList
-    originalPath <- readIORef fileName
-    tmpPath <- readIORef tmpFileName
-    newImg <- undoLast effectList (loadJpegFile originalPath) -- function that will apply all the effects present in the list again
+    effectList <- readIORef changeList -- get all the changes that have been made so far
+    originalPath <- readIORef fileName -- pick the original image
+    tmpPath <- readIORef tmpFileName -- read temp image path for overwriting
+    newImg <- undoLast effectList (loadJpegFile originalPath) -- function that will apply all but last of the effects present in the list 
     saveJpegFile (-1) tmpPath newImg
     imageSetFromFile canvas tmpPath
   
@@ -158,18 +158,19 @@ main = do
     pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
     imageSetFromPixbuf canvas pix  -- finally set the scaled pixbuf to canvas
     
-      
+  {--   
+  Effects added : Grayscale,Brightness
+  --}
   onClicked button1 $ do
     opList <- readIORef changeList 
-    writeIORef changeList (opList++[grayscale])
+    writeIORef changeList (opList++[grayscale]) -- add grayscale to the list of effects applied so far
     do
       tmpFile <- readIORef tmpFileName
-      --writeIORef tmpFileName tmpFile
-      myimg <- loadJpegFile tmpFile -- load image from this location 
+      myimg <- loadJpegFile tmpFile -- load temp image 
       grayscale myimg -- APPLY EFFECT
-      saveJpegFile (-1) tmpFile myimg
-      imageSetFromFile canvas tmpFile
-  -------------------------------------------------------------------    
+      saveJpegFile (-1) tmpFile myimg -- save back to temp image
+      imageSetFromFile canvas tmpFile -- set new temp image on canvas
+-----------------------------------------------------------------------------    
   onClicked button2 $ do
     bwindow  <- windowNew
     set bwindow [windowTitle := "Brightness-Contrast",
