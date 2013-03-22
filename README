@@ -12,6 +12,9 @@ PROBLEMS WITH CONTRAST AND BRIGHTNESS
 The ok button presumes that tempfile1 is there. But it may not be. So handle that case.
 The window should probably be changed to widget so that it can be destroyed via ok and cancel buttons.
 
+LIBRARY Need to be installed for changing cursor:
+sifflet-lib
+Just do "cabal install sifflet-lib"
 
 manishihireadme
 another trial
