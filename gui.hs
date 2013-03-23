@@ -31,9 +31,11 @@ main = do
   copa <- actionNew "COPA" "Copy"  (Just "Copy") (Just stockCopy)
   psta <- actionNew "PSTA" "Paste" (Just "Paste") (Just stockPaste)
   hlpa <- actionNew "HLPA" "Help"  (Just "help") (Just stockHelp)
-  unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockUndo)
+  unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockGotoFirst)
   zina <- actionNew "ZINA" "Zoom In" (Just "Zoom In") (Just stockZoomIn)
   zoua <- actionNew "ZOUA" "Zoom Out" (Just "Zoom Out") (Just stockZoomOut)
+  rraa <- actionNew "RRAA" "Rotate Right" (Just "Rotate Right") (Just stockUndo)
+  rlaa <- actionNew "RLAA" "Rotate Left" (Just "Rotate Left") (Just stockRedo)
   
   --create an action group with name AGR
   --actionGroupNew :: String -> IO ActionGroup
@@ -43,7 +45,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -65,7 +67,7 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua] -- add any new button for menubar here for rendering
+  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa] -- add any new button for menubar here for rendering
   
   expand <- newIORef True
   changeList <- newIORef []
@@ -158,6 +160,23 @@ main = do
     pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
     imageSetFromPixbuf canvas pix  -- finally set the scaled pixbuf to canvas
     
+---------------------------------------------------------------------
+  onActionActivate rraa $ do   
+    tmpFile <- readIORef tmpFileName
+    image <- loadJpegFile tmpFile
+    newImage<-rotateImage 45 image
+    saveJpegFile (-1) tmpFile newImage
+    imageSetFromFile canvas tmpFile
+    
+  onActionActivate rlaa $ do
+    tmpFile <- readIORef tmpFileName
+    image <- loadJpegFile tmpFile
+    newImage<-rotateImage (-45) image
+    saveJpegFile (-1) tmpFile newImage
+    imageSetFromFile canvas tmpFile
+    
+  
+---------------------------------------------------------------------    
   {--   
   Effects added : Grayscale,Brightness
   --}
@@ -317,6 +336,8 @@ uiDecl=  "<ui>\
 \            <toolitem action=\"UNDA\" />\
 \            <toolitem action=\"ZINA\" />\
 \            <toolitem action=\"ZOUA\" />\
+\            <toolitem action=\"RRAA\" />\
+\            <toolitem action=\"RLAA\" />\
 \            <separator />\
 \            <toolitem action=\"HLPA\" />\
 \           </toolbar>\
