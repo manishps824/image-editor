@@ -3,6 +3,7 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.Gdk.GC
 import Graphics.UI.Gtk.Gdk.Cursor
+import Graphics.UI.Gtk.Abstract.Widget
 import Graphics.UI.Sifflet.GtkForeign
 import Graphics.Filters.GD
 import Graphics.GD
@@ -11,16 +12,21 @@ import Data.IORef
 import System.Directory -- for doesFileExist
 main = do
   initGUI
-  Just xml <- xmlNew "editor.glade"
+  Just xml <- xmlNew "editor2.glade"
   window <- xmlGetWidget xml castToWindow "window1" -- this is the main window
-  set window [windowTitle := "Image Editor",windowDefaultWidth := 1300,windowDefaultHeight := 600]
+  set window [windowTitle := "Image Editor",windowDefaultWidth := 400,windowDefaultHeight := 400]
   button1 <- xmlGetWidget xml castToButton "button1"
   button2 <- xmlGetWidget xml castToButton "button2"
   button3 <- xmlGetWidget xml castToButton "button3"
   button4 <- xmlGetWidget xml castToButton "button4"
-  canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
+  viewPort <- xmlGetWidget xml castToViewport "viewport1"
+  canvas <- imageNewFromFile "stock.jpg"
   scrolledwindow1 <- xmlGetWidget xml castToScrolledWindow "scrolledwindow1"
+  
+  eb <- eventBoxNew
+  set eb[containerChild := canvas]
+  set viewPort[containerChild := eb]
   
   fma <- actionNew "FMA" "File" Nothing Nothing
   ema <- actionNew "EMA" "Edit" Nothing Nothing
@@ -167,14 +173,39 @@ main = do
       grayscale myimg -- APPLY EFFECT
       saveJpegFile (-1) tmpFile myimg
       imageSetFromFile canvas tmpFile
-  -------------------------------------------------------------------   
-  
+  -------------------------------------------------------------------
+  {--onClicked button3 $ do
+    setCursor window Crosshair
+    onButtonPress eb (\x -> do  
+							putStrLn "Pressed"
+							p1 <- widgetGetPointer eb
+							putStrLn ("p1 out: " ++ show p1)
+							onButtonRelease eb $ releaseFun eb canvas p1 tmpFileName
+							return (True))					 
+    putStrLn "Hello" --}      
+  -------------------------------------------------------------------
   onClicked button3 $ do
     setCursor window Crosshair
-    onButtonPress window $ mouseClick window 
+    onButtonPress eb (\x -> do  
+							putStrLn "Pressed"
+							p1 <- widgetGetPointer canvas
+							putStrLn ("p1 out: " ++ show p1)
+							onButtonRelease eb 
+								(\x -> do
+									p2 <- widgetGetPointer eb
+									putStrLn ("second: " ++ show p2)
+									tmpFile <- readIORef tmpFileName
+									myimg <- loadJpegFile tmpFile -- load image from this location 
+									putStrLn ("p1 in: " ++ show p1)
+									--cropRect myimg p1 p2
+									--saveJpegFile (-1) tmpFile myimg
+									img1<-crop myimg p1 p2
+									saveJpegFile (-1) tmpFile img1
+									imageSetFromFile canvas tmpFile
+									return True)
+							return (True))					 
     putStrLn "Hello"
-    -- putStrLn "Hello"
-  
+
   -------------------------------------------------------------------
   onClicked button2 $ do
     bwindow  <- windowNew
@@ -329,6 +360,19 @@ uiDecl=  "<ui>\
 
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
+
+releaseFun eb canvas p1 tmpFileName x = do 
+  p2 <- widgetGetPointer eb
+  putStrLn ("second: " ++ show p2)
+  tmpFile <- readIORef tmpFileName
+  myimg <- loadJpegFile tmpFile -- load image from this location 
+  putStrLn ("p1 in: " ++ show p1)
+  cropRect myimg p1 p2
+  saveJpegFile (-1) tmpFile myimg
+  --img1<-crop myimg p1 p
+  --saveJpegFile (-1) tmpFile img1
+  imageSetFromFile canvas tmpFile
+  return True
                                   
 undoLast :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
 undoLast [] img = img
@@ -338,11 +382,18 @@ undoLast (x:xs) img = do
   x tmpimg
   undoLast xs (return tmpimg)
 
---mouseClick :: DrawingArea -> event -> IO Bool
-mouseClick canvas _evt = do 
-    p <- widgetGetPointer canvas
-    putStrLn ("clicked: " ++ show p)
-    return True -- everything is OK
+cropRect img (a,b) (c,d) = do
+  Graphics.GD.drawLine (a,b) (c,b) (rgb 254 254 254) img
+  Graphics.GD.drawLine (c,b) (c,d) (rgb 254 254 254) img
+  Graphics.GD.drawLine (a,d) (c,d) (rgb 254 254 254) img
+  Graphics.GD.drawLine (a,b) (a,d) (rgb 254 254 254) img
+    
+crop :: Graphics.GD.Image -> Graphics.GD.Point -> Graphics.GD.Point -> IO Graphics.GD.Image
+crop img (a,b) (c,d) = do
+  newimg <- newImage ((c-a),(d-b))
+  copyRegion (a,b) ((c-a),(d-b)) img (0,0) newimg
+  resizeImage (c-a) (d-b) newimg
+      
 {--
 abs :: Int -> Int
 abs n | n >= 0    = n
