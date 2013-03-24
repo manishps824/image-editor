@@ -35,7 +35,7 @@
                 <property name="can_focus">False</property>
                 <child>
                   <widget class="GtkButton" id="button1">
-                    <property name="label" translatable="yes">button</property>
+                    <property name="label" translatable="yes">grayscale</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -49,7 +49,7 @@
                 </child>
                 <child>
                   <widget class="GtkButton" id="button2">
-                    <property name="label" translatable="yes">button</property>
+                    <property name="label" translatable="yes">brightness</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -63,7 +63,7 @@
                 </child>
                 <child>
                   <widget class="GtkButton" id="button3">
-                    <property name="label" translatable="yes">button</property>
+                    <property name="label" translatable="yes">crop</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
