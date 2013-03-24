@@ -16,6 +16,12 @@ LIBRARY Need to be installed for changing cursor:
 sifflet-lib
 Just do "cabal install sifflet-lib"
 
+ISSUES WITH CROPPING:
+onButtonPress widgetGetPointer gets a Point(top left corner) say p1 and onButtonRelease widgetGetPointer gets another Point(bottom right corner) say p2. First time, it works fine, but if I again try to crop by dragging the mouse over the cropped image, it takes a new point onRelease, but somehow remembers the previous point p1, thus making crop second time act in a weird fashion.
+
+Modified the editor.glade file to incorporate the cropping effect, but have not removed the original "editor.glade" file, rather added a new file "editor2.glade"
+
+
 manishihireadme
 another trial
 ravi test
