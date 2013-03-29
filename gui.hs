@@ -225,13 +225,15 @@ main = do
       myimg <- loadJpegFile tmpFile1
       saveJpegFile (-1) tmpFile myimg
       removeFile tmpFile1
-      mainQuit
+      widgetDestroy bwindow
  
     cancelButton <- buttonNewWithLabel "Cancel"
     onClicked cancelButton $ do
       tmpFile1 <-readIORef tmpFileName1
+      tmpFile <- readIORef tmpFileName
       removeFile tmpFile1
-      mainQuit
+      imageSetFromFile canvas tmpFile
+      widgetDestroy bwindow
     
     boxPackStart hbox3 okbutton PackGrow 0
     boxPackStart hbox3 cancelButton PackGrow 0
