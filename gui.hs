@@ -15,6 +15,7 @@ main = do
   button2 <- xmlGetWidget xml castToButton "button2"
   button3 <- xmlGetWidget xml castToButton "button3"
   button4 <- xmlGetWidget xml castToButton "button4"
+  button5 <- xmlGetWidget xml castToButton "button5"
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
   scrolledwindow1 <- xmlGetWidget xml castToScrolledWindow "scrolledwindow1"
@@ -222,7 +223,7 @@ main = do
     onClicked okbutton $ do
       tmpFile1 <- readIORef tmpFileName1
       tmpFile <- readIORef tmpFileName
-      myimg <- loadJpegFile tmpFile1
+      myimg <- loadJpegFile tmpFile
       saveJpegFile (-1) tmpFile myimg
       removeFile tmpFile1
       widgetDestroy bwindow
@@ -271,7 +272,60 @@ main = do
       
    
     
-
+----------------------------------------------------
+  onClicked button5 $ do
+    tmpFile1 <- readIORef tmpFileName1
+    tmpFile <- readIORef tmpFileName
+    myimg <- loadJpegFile tmpFile
+    saveJpegFile (-1) tmpFile1 myimg
+    bwindow <- windowNew
+    set bwindow [windowTitle := "Gaussian Blur",
+              windowDefaultHeight := 100,
+              windowDefaultWidth := 200]
+    mainbox <- vBoxNew False 10
+    containerAdd bwindow mainbox
+    containerSetBorderWidth mainbox 10
+    box1 <- vBoxNew False 0
+    boxPackStart mainbox box1 PackNatural 0
+    adj1 <- adjustmentNew 0.0 0 10.0 1.0 1.0 1.0
+    hsc1 <- hScaleNew adj1
+    hbox1 <- hBoxNew False 0
+    hbox3 <- hBoxNew False 0
+    containerSetBorderWidth hbox3 10
+    boxPackStart hbox1 hsc1 PackGrow 0
+    okbutton <-buttonNewWithLabel "OK"
+    onClicked okbutton $ do
+      tmpFile1 <- readIORef tmpFileName1
+      tmpFile <- readIORef tmpFileName
+      myimg <- loadJpegFile tmpFile1
+      saveJpegFile (-1) tmpFile myimg
+      removeFile tmpFile1
+      widgetDestroy bwindow
+ 
+    cancelButton <- buttonNewWithLabel "Cancel"
+    onClicked cancelButton $ do
+      tmpFile1 <-readIORef tmpFileName1
+      tmpFile <- readIORef tmpFileName
+      removeFile tmpFile1
+      imageSetFromFile canvas tmpFile
+      widgetDestroy bwindow
+      
+    boxPackStart hbox3 okbutton PackGrow 0
+    boxPackStart hbox3 cancelButton PackGrow 0  
+    boxPackStart box1 hbox1 PackNatural 0
+    boxPackStart box1 hbox3 PackNatural 0
+    onValueChanged adj1 $ do 
+      tmpFile1 <- readIORef tmpFileName1
+      --val <- adjustmentGetValue adj1
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadJpegFile tmpFile1 -- load image from this location 
+      gaussianBlur myimg
+      saveJpegFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+      
+    widgetShowAll bwindow
+    onDestroy bwindow mainQuit
+    mainGUI  
 
 
 {--
