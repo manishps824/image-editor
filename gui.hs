@@ -3,9 +3,10 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Glade
 import Graphics.Filters.GD
 import Graphics.GD
-import System.FilePath.Posix
 import Data.IORef
+import System.FilePath.Posix
 import System.Directory -- for doesFileExist
+import Effects
 main = do
   initGUI
   Just xml <- xmlNew "editor.glade"
@@ -77,6 +78,9 @@ main = do
   tmpFileName1 <- newIORef "" -- why Amitesh??
   zoomAmount <- newIORef 0
 ------------------------------------------------------------------------------------------
+  {--
+this requires fileName,tmpFilename,tmpFilename1,canvas for a function
+--}
   onActionActivate opna $ do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
     widgetShow fcd
@@ -130,53 +134,11 @@ main = do
            imageSetFromFile canvas originalFile
  --}
 --------------------------------------------------------------------- 
-  {--
-  For zoom in/out we will start with the temp image and then zoom-in according to the zoom amount.
-  The sign of the exponent takes care of zoom-in/out
-  --}
-  onActionActivate zina $ do         
-    zAmnt <- readIORef zoomAmount -- read the zoom amount
-    writeIORef zoomAmount (zAmnt+1) -- increment by one and write it
-    zAmnt <- readIORef zoomAmount
-    putStrLn $ show zAmnt
-    tmpFile <- readIORef tmpFileName -- read the temp file location
-    pix <- pixbufNewFromFile tmpFile -- get pixbuf from the temp file
-    w <- pixbufGetWidth pix
-    h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt))* fromIntegral w -- for debugging
-    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
-    imageSetFromPixbuf canvas pix -- finally set the scaled pixbuf to canvas
-
----------------------------------------------------------------------            
-  onActionActivate zoua $ do         
-    zAmnt <- readIORef zoomAmount -- read the zoom amount
-    writeIORef zoomAmount (zAmnt-1) -- decrement by one and write it
-    zAmnt <- readIORef zoomAmount 
-    putStrLn $ show zAmnt
-    tmpFile <- readIORef tmpFileName -- read the temp file location
-    pix <- pixbufNewFromFile tmpFile -- get pixbuf from the temp file
-    w <- pixbufGetWidth pix
-    h <- pixbufGetHeight pix
-    putStrLn $ show $ truncate $ (1.1**(fromIntegral zAmnt)) * fromIntegral w -- for debugging
-    pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral $ zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
-    imageSetFromPixbuf canvas pix  -- finally set the scaled pixbuf to canvas
-    
+  onActionActivate zina $ zoomInOut zoomAmount tmpFileName canvas 1
+  onActionActivate zoua $ zoomInOut zoomAmount tmpFileName canvas (-1)
 ---------------------------------------------------------------------
-  onActionActivate rraa $ do   
-    tmpFile <- readIORef tmpFileName
-    image <- loadJpegFile tmpFile
-    newImage<-rotateImage 45 image
-    saveJpegFile (-1) tmpFile newImage
-    imageSetFromFile canvas tmpFile
-    
-  onActionActivate rlaa $ do
-    tmpFile <- readIORef tmpFileName
-    image <- loadJpegFile tmpFile
-    newImage<-rotateImage (-45) image
-    saveJpegFile (-1) tmpFile newImage
-    imageSetFromFile canvas tmpFile
-    
-  
+  onActionActivate rraa $ rotateA tmpFileName canvas 1
+  onActionActivate rlaa $ rotateA tmpFileName canvas (-1)
 ---------------------------------------------------------------------    
   {--   
   Effects added : Grayscale,Brightness
