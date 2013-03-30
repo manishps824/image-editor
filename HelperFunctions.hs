@@ -20,12 +20,16 @@ loadImgFile fpath = do
   case ext of
     ".jpeg" -> loadJpegFile fpath
     ".jpg" -> loadJpegFile fpath
+    ".png" -> loadPngFile fpath
+    ".gif" -> loadGifFile fpath
     
 saveImgFile quality fpath image = do
   ext <- return (takeExtension fpath)
   case ext of
     ".jpeg" -> saveJpegFile quality fpath image
     ".jpg" -> saveJpegFile quality fpath image
+    ".png" -> savePngFile fpath image
+    ".gif" -> saveGifFile fpath image
     
 okAction tmpFileName tmpFileName1 bwindow = do
   tmpFile1 <- readIORef tmpFileName1
