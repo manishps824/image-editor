@@ -7,6 +7,7 @@ import Data.IORef
 import System.FilePath.Posix
 import System.Directory -- for doesFileExist
 import Effects
+import HelperFunctions
 main = do
   initGUI
   Just xml <- xmlNew "editor.glade"
@@ -364,13 +365,7 @@ uiDecl=  "<ui>\
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
                                   
-undoLast :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
-undoLast [] img = img
-undoLast [a] img = img
-undoLast (x:xs) img = do
-  tmpimg <- img
-  x tmpimg
-  undoLast xs (return tmpimg)
+
 
 {--
 abs :: Int -> Int

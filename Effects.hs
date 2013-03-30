@@ -22,6 +22,7 @@ zoomInOut zoomAmount tmpFileName canvas factor =
     pix <- pixbufScaleSimple pix (truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral w))(truncate $ (1.1**(fromIntegral zAmnt))*(fromIntegral h)) InterpBilinear -- exponent takes care of zoom-in/out
     imageSetFromPixbuf canvas pix -- finally set the scaled pixbuf to canvas
 
+-- add function signature here
 rotateA tmpFileName canvas factor = 
   do   
     tmpFile <- readIORef tmpFileName
