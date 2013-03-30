@@ -93,9 +93,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
         case file of 
           Just fpath -> do
             writeIORef fileName fpath -- save original file location
-            myimg <- loadJpegFile fpath  -- load image from this location 
+            myimg <- loadImgFile fpath  -- load image from this location 
             basename <- return (takeBaseName fpath)
-            saveJpegFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
+            saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
             writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
             writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
             imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
@@ -109,8 +109,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     effectList <- readIORef changeList -- get all the changes that have been made so far
     originalPath <- readIORef fileName -- pick the original image
     tmpPath <- readIORef tmpFileName -- read temp image path for overwriting
-    newImg <- undoLast effectList (loadJpegFile originalPath) -- function that will apply all but last of the effects present in the list 
-    saveJpegFile (-1) tmpPath newImg
+    newImg <- undoLast effectList (loadImgFile originalPath) -- function that will apply all but last of the effects present in the list 
+    saveImgFile (-1) tmpPath newImg
     imageSetFromFile canvas tmpPath
   
   
@@ -149,9 +149,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     writeIORef changeList (opList++[grayscale]) -- add grayscale to the list of effects applied so far
     do
       tmpFile <- readIORef tmpFileName
-      myimg <- loadJpegFile tmpFile -- load temp image 
+      myimg <- loadImgFile tmpFile -- load temp image 
       grayscale myimg -- APPLY EFFECT
-      saveJpegFile (-1) tmpFile myimg -- save back to temp image
+      saveImgFile (-1) tmpFile myimg -- save back to temp image
       imageSetFromFile canvas tmpFile -- set new temp image on canvas
 -----------------------------------------------------------------------------    
   onClicked button2 $ do
@@ -186,8 +186,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     onClicked okbutton $ do
       tmpFile1 <- readIORef tmpFileName1
       tmpFile <- readIORef tmpFileName
-      myimg <- loadJpegFile tmpFile
-      saveJpegFile (-1) tmpFile myimg
+      myimg <- loadImgFile tmpFile
+      saveImgFile (-1) tmpFile myimg
       removeFile tmpFile1
       widgetDestroy bwindow
  
@@ -213,9 +213,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       tmpFile1 <- readIORef tmpFileName1
       val <- adjustmentGetValue adj1
       --writeIORef tmpFileName tmpFile
-      myimg <- loadJpegFile tmpFile -- load image from this location 
+      myimg <- loadImgFile tmpFile -- load image from this location 
       brightness myimg $ truncate val
-      saveJpegFile (-1) tmpFile1 myimg
+      saveImgFile (-1) tmpFile1 myimg
       imageSetFromFile canvas tmpFile1
       
         
@@ -224,9 +224,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       tmpFile1 <- readIORef tmpFileName1
       val <- adjustmentGetValue adj2
       --writeIORef tmpFileName tmpFile
-      myimg <- loadJpegFile tmpFile -- load image from this location 
+      myimg <- loadImgFile tmpFile -- load image from this location 
       contrast myimg $ truncate val
-      saveJpegFile (-1) tmpFile1 myimg
+      saveImgFile (-1) tmpFile1 myimg
       imageSetFromFile canvas tmpFile1
       
     widgetShowAll bwindow
@@ -239,8 +239,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
   onClicked button5 $ do
     tmpFile1 <- readIORef tmpFileName1
     tmpFile <- readIORef tmpFileName
-    myimg <- loadJpegFile tmpFile
-    saveJpegFile (-1) tmpFile1 myimg
+    myimg <- loadImgFile tmpFile
+    saveImgFile (-1) tmpFile1 myimg
     bwindow <- windowNew
     set bwindow [windowTitle := "Gaussian Blur",
               windowDefaultHeight := 100,
@@ -260,8 +260,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     onClicked okbutton $ do
       tmpFile1 <- readIORef tmpFileName1
       tmpFile <- readIORef tmpFileName
-      myimg <- loadJpegFile tmpFile1
-      saveJpegFile (-1) tmpFile myimg
+      myimg <- loadImgFile tmpFile1
+      saveImgFile (-1) tmpFile myimg
       removeFile tmpFile1
       widgetDestroy bwindow
  
@@ -281,9 +281,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       tmpFile1 <- readIORef tmpFileName1
       --val <- adjustmentGetValue adj1
       --writeIORef tmpFileName tmpFile
-      myimg <- loadJpegFile tmpFile1 -- load image from this location 
+      myimg <- loadImgFile tmpFile1 -- load image from this location 
       gaussianBlur myimg
-      saveJpegFile (-1) tmpFile1 myimg
+      saveImgFile (-1) tmpFile1 myimg
       imageSetFromFile canvas tmpFile1
       
     widgetShowAll bwindow
