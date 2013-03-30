@@ -6,7 +6,7 @@ import Graphics.GD
 import Data.IORef
 import System.FilePath.Posix
 import System.Directory -- for doesFileExist
-
+import HelperFunctions
 -- add function signature here 
 zoomInOut zoomAmount tmpFileName canvas factor = 
   do         
@@ -26,7 +26,7 @@ zoomInOut zoomAmount tmpFileName canvas factor =
 rotateA tmpFileName canvas factor = 
   do   
     tmpFile <- readIORef tmpFileName
-    image <- loadJpegFile tmpFile
+    image <- loadImgFile tmpFile
     newImage<-rotateImage (45*factor) image
-    saveJpegFile (-1) tmpFile newImage
+    saveImgFile (-1) tmpFile newImage
     imageSetFromFile canvas tmpFile

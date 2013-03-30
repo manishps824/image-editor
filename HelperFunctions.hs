@@ -14,3 +14,17 @@ undoLast (x:xs) img = do
   tmpimg <- img
   x tmpimg
   undoLast xs (return tmpimg)
+
+loadImgFile fpath = do
+  ext <- return (takeExtension fpath)
+  case ext of
+    ".jpeg" -> loadJpegFile fpath
+    ".jpg" -> loadJpegFile fpath
+    
+saveImgFile quality fpath image= do
+  ext <- return (takeExtension fpath)
+  case ext of
+    ".jpeg" -> saveJpegFile quality fpath image
+    ".jpg" -> saveJpegFile quality fpath image
+    
+  
