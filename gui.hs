@@ -144,15 +144,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
   {--   
   Effects added : Grayscale,Brightness
   --}
-  onClicked button1 $ do
-    opList <- readIORef changeList 
-    writeIORef changeList (opList++[grayscale]) -- add grayscale to the list of effects applied so far
-    do
-      tmpFile <- readIORef tmpFileName
-      myimg <- loadImgFile tmpFile -- load temp image 
-      grayscale myimg -- APPLY EFFECT
-      saveImgFile (-1) tmpFile myimg -- save back to temp image
-      imageSetFromFile canvas tmpFile -- set new temp image on canvas
+  onClicked button1 $ noArgEffect grayscale changeList tmpFileName canvas -- add edgeDetect,emboss,meanRemoval,negative like this
 -----------------------------------------------------------------------------    
   onClicked button2 $ do
     bwindow  <- windowNew
@@ -340,6 +332,3 @@ uiDecl=  "<ui>\
 \           </toolbar>\
 \          </ui>"
 
-prAct a = onActionActivate a $ do name <- actionGetName a
-                                  putStrLn ("Action Name: " ++ name)  
-                                  

@@ -41,3 +41,6 @@ cancelAction tmpFileName tmpFileName1 bwindow canvas = do
   removeFile tmpFile1
   imageSetFromFile canvas tmpFile
   widgetDestroy bwindow
+  
+prAct a = onActionActivate a $ do name <- actionGetName a
+                                  putStrLn ("Action Name: " ++ name)  
