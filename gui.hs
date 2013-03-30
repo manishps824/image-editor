@@ -183,21 +183,10 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     hbox3 <- hBoxNew False 0
     containerSetBorderWidth hbox3 10
     okbutton <-buttonNewWithLabel "OK"
-    onClicked okbutton $ do
-      tmpFile1 <- readIORef tmpFileName1
-      tmpFile <- readIORef tmpFileName
-      myimg <- loadImgFile tmpFile
-      saveImgFile (-1) tmpFile myimg
-      removeFile tmpFile1
-      widgetDestroy bwindow
+    onClicked okbutton $ okAction tmpFileName tmpFileName1 bwindow
  
     cancelButton <- buttonNewWithLabel "Cancel"
-    onClicked cancelButton $ do
-      tmpFile1 <-readIORef tmpFileName1
-      tmpFile <- readIORef tmpFileName
-      removeFile tmpFile1
-      imageSetFromFile canvas tmpFile
-      widgetDestroy bwindow
+    onClicked cancelButton $ cancelAction tmpFileName tmpFileName1 bwindow canvas
     
     boxPackStart hbox3 okbutton PackGrow 0
     boxPackStart hbox3 cancelButton PackGrow 0
@@ -257,21 +246,10 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     containerSetBorderWidth hbox3 10
     boxPackStart hbox1 hsc1 PackGrow 0
     okbutton <-buttonNewWithLabel "OK"
-    onClicked okbutton $ do
-      tmpFile1 <- readIORef tmpFileName1
-      tmpFile <- readIORef tmpFileName
-      myimg <- loadImgFile tmpFile1
-      saveImgFile (-1) tmpFile myimg
-      removeFile tmpFile1
-      widgetDestroy bwindow
+    onClicked okbutton $ okAction tmpFileName tmpFileName1 bwindow
  
     cancelButton <- buttonNewWithLabel "Cancel"
-    onClicked cancelButton $ do
-      tmpFile1 <-readIORef tmpFileName1
-      tmpFile <- readIORef tmpFileName
-      removeFile tmpFile1
-      imageSetFromFile canvas tmpFile
-      widgetDestroy bwindow
+    onClicked cancelButton $ cancelAction tmpFileName tmpFileName1 bwindow canvas
       
     boxPackStart hbox3 okbutton PackGrow 0
     boxPackStart hbox3 cancelButton PackGrow 0  
@@ -365,10 +343,3 @@ uiDecl=  "<ui>\
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
                                   
-
-
-{--
-abs :: Int -> Int
-abs n | n >= 0    = n
-      | otherwise = -n
---}

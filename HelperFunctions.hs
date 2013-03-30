@@ -21,10 +21,23 @@ loadImgFile fpath = do
     ".jpeg" -> loadJpegFile fpath
     ".jpg" -> loadJpegFile fpath
     
-saveImgFile quality fpath image= do
+saveImgFile quality fpath image = do
   ext <- return (takeExtension fpath)
   case ext of
     ".jpeg" -> saveJpegFile quality fpath image
     ".jpg" -> saveJpegFile quality fpath image
     
-  
+okAction tmpFileName tmpFileName1 bwindow = do
+  tmpFile1 <- readIORef tmpFileName1
+  tmpFile <- readIORef tmpFileName
+  myimg <- loadImgFile tmpFile
+  saveImgFile (-1) tmpFile myimg
+  removeFile tmpFile1
+  widgetDestroy bwindow
+
+cancelAction tmpFileName tmpFileName1 bwindow canvas = do
+  tmpFile1 <-readIORef tmpFileName1
+  tmpFile <- readIORef tmpFileName
+  removeFile tmpFile1
+  imageSetFromFile canvas tmpFile
+  widgetDestroy bwindow
