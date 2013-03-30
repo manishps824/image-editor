@@ -82,26 +82,7 @@ main = do
   {--
 this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 --}
-  onActionActivate opna $ do
-    fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
-    widgetShow fcd
-    response <- dialogRun fcd
-    case response of
-      ResponseCancel -> putStrLn "Cancel" -- user pressed Cancel
-      ResponseAccept -> do 
-        file <- fileChooserGetFilename fcd -- get filename of the file that has been selected
-        case file of 
-          Just fpath -> do
-            writeIORef fileName fpath -- save original file location
-            myimg <- loadImgFile fpath  -- load image from this location 
-            basename <- return (takeBaseName fpath)
-            saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
-            writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
-            writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
-            imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
-            putStrLn $ "Opening File: " ++ fpath
-          Nothing -> putStrLn "error: No file was selected"
-    widgetDestroy fcd
+  onActionActivate opna $ openAction fileName tmpFileName tmpFileName1 canvas
     
 --------------------------------------------------------------------------------------------------
   
