@@ -2,6 +2,7 @@ module Main where
 import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Glade
 import Graphics.Filters.GD
+import Graphics.Filters.Util
 import Graphics.GD
 import Data.IORef
 import System.FilePath.Posix
@@ -16,8 +17,11 @@ main = do
   button1 <- xmlGetWidget xml castToButton "button1"
   button2 <- xmlGetWidget xml castToButton "button2"
   button3 <- xmlGetWidget xml castToButton "button3"
-  button4 <- xmlGetWidget xml castToButton "button4"
+  sepiaButton <- xmlGetWidget xml castToButton "button4"
   button5 <- xmlGetWidget xml castToButton "button5"
+  button6 <- xmlGetWidget xml castToButton "button6"
+  colorixeButton <- xmlGetWidget xml castToButton "button7"
+  
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
   scrolledwindow1 <- xmlGetWidget xml castToScrolledWindow "scrolledwindow1"
@@ -126,7 +130,35 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
   Effects added : Grayscale,Brightness
   --}
   onClicked button1 $ noArgEffect grayscale changeList tmpFileName canvas -- add edgeDetect,emboss,meanRemoval,negative like this
------------------------------------------------------------------------------    
+-----------------------------------------------------------------------------
+  onClicked button6 $ noArgEffect duoTone changeList tmpFileName canvas
+  onClicked sepiaButton $ noArgEffect sepia changeList tmpFileName canvas    
+-----------------------------------------------------------------------------
+  {-onClicked colorixeButton $ do
+    bwindow <- windowNew
+    set bwindow [windowTitle := "Color Selection",
+				containerBorderWidth := 10 ]
+    vb <- vBoxNew False 0
+    containerAdd bwindow vb
+    colb <- colorButtonNew
+    boxPackStart vb colb PackGrow 0
+    
+    onColorSet colb $ do colour <- colorButtonGetColor colb
+                         case colour of 
+                           (Color r g b)->rr = fromIntegral r / 255							
+                                          rg = fromIntegral g / 255									
+                                          rb = fromIntegral b / 255							
+                                          ra = fromIntegral 1 / 255
+                                          --in rgb=(rr,rg,rb,ra)     
+                         putStrLn (show  colour)
+
+    
+    
+    widgetShowAll bwindow
+    onDestroy bwindow mainQuit
+    mainGUI
+-}
+----------------------------------------------------------------------------
   onClicked button2 $ do
     bwindow  <- windowNew
     set bwindow [windowTitle := "Brightness-Contrast",
@@ -151,14 +183,21 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     containerSetBorderWidth hbox2 10
     label2 <- labelNew (Just "Contrast:")
     boxPackStart hbox2 label2 PackNatural 0
-    boxPackStart hbox2 hsc2 PackGrow 0
-  
+    boxPackStart hbox2 hsc2 PackGrow 0	
     hbox3 <- hBoxNew False 0
     containerSetBorderWidth hbox3 10
     okbutton <-buttonNewWithLabel "OK"
-    onClicked okbutton $ okAction tmpFileName tmpFileName1 bwindow
+    
+    onClicked okbutton $  do
+		val1 <- adjustmentGetValue adj1
+		val2 <- adjustmentGetValue adj2
+		opList <- readIORef changeList 
+		writeIORef changeList (opList++[(flip (brightness) (truncate val1))]) -- add f to the list of effects applied so far
+		writeIORef changeList (opList++[(flip (contrast)  (truncate val2))]) -- add f to the list of effects applied so far
+		okAction tmpFileName tmpFileName1 bwindow
  
     cancelButton <- buttonNewWithLabel "Cancel"
+    
     onClicked cancelButton $ cancelAction tmpFileName tmpFileName1 bwindow canvas
     
     boxPackStart hbox3 okbutton PackGrow 0
@@ -198,7 +237,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
    
     
 ----------------------------------------------------
-  onClicked button5 $ do
+  onClicked button5 $ noArgEffect gaussianBlur changeList tmpFileName canvas    
+  
+{--
     tmpFile1 <- readIORef tmpFileName1
     tmpFile <- readIORef tmpFileName
     myimg <- loadImgFile tmpFile
@@ -240,7 +281,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     widgetShowAll bwindow
     onDestroy bwindow mainQuit
     mainGUI  
-
+--}
 
 {--
     fch <- fileChooserWidgetNew FileChooserActionOpen
@@ -313,3 +354,10 @@ uiDecl=  "<ui>\
 \           </toolbar>\
 \          </ui>"
 
+{-
+printColor::Graphics.UI.Gtk.Color -> RGBA
+printColor (Color r g b) =let 
+						 rgb=		((fromIntegral r / 255) 
+									(fromIntegral g / 255)
+									(fromIntegral b / 255)
+-}									
