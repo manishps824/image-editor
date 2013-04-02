@@ -7,6 +7,49 @@ import Data.IORef
 import System.FilePath.Posix
 import System.Directory -- for doesFileExist
 
+data FileList a = FileList [a] [a] deriving (Show)
+
+-- goForward moves forward on a FileList 
+goForward :: FileList String -> FileList String
+goForward (FileList [] ys) = FileList [] ys
+goForward (FileList [x] ys) = FileList [x] ys 
+goForward (FileList (x:xs) ys) = FileList xs (x:ys)
+
+
+--goBackwards moves backwards on a FileList
+goBackward :: FileList String -> FileList String
+goBackward (FileList xs []) = FileList xs []
+--goBackward (FileList xs [y]) = FileList [] (reverse (y:xs))
+goBackward (FileList xs (y:ys)) = FileList (y:xs) ys 
+
+toFileList :: [String] -> FileList String --makes a FileList from a simple list of files
+toFileList xs = FileList xs []  
+
+createFileList :: FilePath -> IO (FileList String)
+createFileList dir = do
+                   fl <- getDirectoryContents dir
+                   filelst <- return (map ((dir++"/")++) fl)
+                   let imageList = filter isImage filelst in
+                     return $ toFileList imageList
+                     
+getFrontFile :: FileList String -> String                     
+getFrontFile (FileList [] ys) = "" 
+getFrontFile (FileList (x:xs) _) = x
+                   
+--getFrontFileList2 :: FileList String -> String                                        
+--getFrontFileList2 (FileList _ (y:ys)) = y
+                                        
+isImage :: FilePath -> Bool
+isImage x = (takeExtension x) `elem` [".jpg",".png",".jpeg"]
+
+
+adjustFileList :: (FileList String) -> FilePath -> (FileList String) 
+adjustFileList (FileList (x:xs) b) currentFile = if x == currentFile then
+                                                   (FileList (x:xs) b)
+                                                 else (adjustFileList (FileList xs (x:b)) currentFile)
+
+adjustFileList (FileList [] ys) currentFile = (FileList [] ys)
+
 undoLast :: [Graphics.GD.Image -> IO()] -> IO Graphics.GD.Image -> IO Graphics.GD.Image
 undoLast [] img = img
 undoLast [a] img = img
@@ -55,7 +98,15 @@ prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
 ------------------------------------------------------------------------
 
-openAction fileName tmpFileName tmpFileName1 canvas = 
+printFileList (FileList a b) = do
+                                  putStrLn "LIST 1"
+                                  mapM putStrLn a
+                                  putStrLn "LIST 2"
+                                  mapM putStrLn b
+                                  putStrLn "-----------------"
+
+
+openAction fileName tmpFileName tmpFileName1 canvas myFileList = 
   do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
     widgetShow fcd
@@ -67,8 +118,17 @@ openAction fileName tmpFileName tmpFileName1 canvas =
         case file of 
           Just fpath -> do
             writeIORef fileName fpath -- save original file location
-            myimg <- loadImgFile fpath  -- load image from this location 
             basename <- return (takeBaseName fpath)
+            putStrLn ("BASENAME"++basename)
+            -----------------------------------------------------
+            directory <- return $ takeDirectory fpath
+            tempfileList <- createFileList directory
+            printFileList tempfileList
+            fileList <- return $ adjustFileList tempfileList fpath
+            writeIORef myFileList fileList
+            printFileList fileList
+            -----------------------------------------------------
+            myimg <- loadImgFile fpath  -- load image from tI don't know the reason why it failed, but my guess is that the cohis location 
             saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
             writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
             writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name

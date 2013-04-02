@@ -36,12 +36,11 @@ noArgEffect f changeList tmpFileName canvas =
   do
     opList <- readIORef changeList 
     writeIORef changeList (opList++[f]) -- add f to the list of effects applied so far
-    do
-      tmpFile <- readIORef tmpFileName
-      myimg <- loadImgFile tmpFile -- load temp image 
-      f myimg -- APPLY EFFECT
-      saveImgFile (-1) tmpFile myimg -- save back to temp image
-      imageSetFromFile canvas tmpFile -- set new temp image on canvas
+    tmpFile <- readIORef tmpFileName
+    myimg <- loadImgFile tmpFile -- load temp image 
+    f myimg -- APPLY EFFECT
+    saveImgFile (-1) tmpFile myimg -- save back to temp image
+    imageSetFromFile canvas tmpFile -- set new temp image on canvas
 
 
 greaterThan ::	Int -> Int

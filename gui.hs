@@ -43,7 +43,8 @@ main = do
   zoua <- actionNew "ZOUA" "Zoom Out" (Just "Zoom Out") (Just stockZoomOut)
   rraa <- actionNew "RRAA" "Rotate Right" (Just "Rotate Right") (Just stockUndo)
   rlaa <- actionNew "RLAA" "Rotate Left" (Just "Rotate Left") (Just stockRedo)
-  
+  nexa <- actionNew "NEXA" "Next" (Just "Next") (Just stockGoForward)
+  baca <- actionNew "BACA" "Back" (Just "Back") (Just stockGoBack)
   --create an action group with name AGR
   --actionGroupNew :: String -> IO ActionGroup
   agr <- actionGroupNew "AGR"
@@ -52,7 +53,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa,nexa,baca]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -74,7 +75,7 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa] -- add any new button for menubar here for rendering
+  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
   
   expand <- newIORef True
   changeList <- newIORef []
@@ -82,11 +83,60 @@ main = do
   tmpFileName <- newIORef ""
   tmpFileName1 <- newIORef "" -- why Amitesh??
   zoomAmount <- newIORef 0
+  myFileList <- newIORef (FileList [] [])
 ------------------------------------------------------------------------------------------
   {--
 this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 --}
-  onActionActivate opna $ openAction fileName tmpFileName tmpFileName1 canvas
+  onActionActivate opna $ openAction fileName tmpFileName tmpFileName1 canvas myFileList
+    
+----------------------------------------------------------------------------------    
+  onActionActivate nexa $ do
+    tempfileList <- readIORef myFileList
+    putStrLn "NEXT PRESSED"
+    fileList <- return (goForward tempfileList)
+    writeIORef myFileList fileList
+    printFileList fileList
+    frontFile <- return $ getFrontFile fileList 
+    case frontFile of 
+      "" -> 
+        putStrLn "End of List"
+      _ ->
+        do
+          putStrLn frontFile 
+          basename <- return (takeBaseName frontFile)
+          myimg <- loadImgFile frontFile  -- load image from this location 
+          saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code ir for future use
+          writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's ame
+          writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
+          imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
+          putStrLn $ "Opening File: " ++ frontFile
+    
+    
+    
+  onActionActivate baca $ do
+    tempfileList <- readIORef myFileList
+    putStrLn "BACK PRESSED"
+    printFileList tempfileList
+    fileList <- return (goBackward tempfileList)
+    writeIORef myFileList fileList
+    printFileList fileList
+    frontFile <- return $ getFrontFile fileList 
+    case frontFile of 
+      "" -> 
+        putStrLn "End of List"
+      _ ->
+        do
+          putStrLn frontFile 
+          basename <- return (takeBaseName frontFile)
+          myimg <- loadImgFile frontFile  -- load image from this location 
+          saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code ir for future use
+          writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's ame
+          writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
+          imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
+          putStrLn $ "Opening File: " ++ frontFile
+       
+            
     
 --------------------------------------------------------------------------------------------------
   
@@ -95,30 +145,11 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     originalPath <- readIORef fileName -- pick the original image
     tmpPath <- readIORef tmpFileName -- read temp image path for overwriting
     newImg <- undoLast effectList (loadImgFile originalPath) -- function that will apply all but last of the effects present in the list 
+    writeIORef changeList (init effectList)
     saveImgFile (-1) tmpPath newImg
     imageSetFromFile canvas tmpPath
   
   
--------------------------------------------------------------------------------------------  
-  {--
-  onClicked button2 $ do
-    exp <- readIORef expand
-    case exp of
-         True -> do
-           path <- get canvas imageFile  --find the filename
-           basename <- return (takeBaseName path) --take the name only not extension
-           writeIORef expand False -- toggle
-           pix <- pixbufNewFromFileAtScale path 1000 1000 True 
-           pixbufSave pix (basename++".jpeg") "jpeg" [] 
-           --imageSetFromPixbuf canvas pix
-           imageSetFromFile canvas (basename++".jpeg")
-           putStrLn "DONE"
-         False -> do
-           --here you need to ensure that all effects applied till that point are reapplied
-           originalFile <- readIORef fileName
-           writeIORef expand True
-           imageSetFromFile canvas originalFile
- --}
 --------------------------------------------------------------------- 
   onActionActivate zina $ zoomInOut zoomAmount tmpFileName canvas 1
   onActionActivate zoua $ zoomInOut zoomAmount tmpFileName canvas (-1)
@@ -329,6 +360,8 @@ uiDecl=  "<ui>\
 \              <menuitem action=\"UNDA\" />\
 \              <menuitem action=\"ZINA\" />\
 \              <menuitem action=\"ZOUA\" />\
+\              <menuitem action=\"NEXA\" />\
+\              <menuitem action=\"BACA\" />\
 \           </menu>\
 \            <separator />\
 \            <menu action=\"HMA\">\
@@ -349,6 +382,8 @@ uiDecl=  "<ui>\
 \            <toolitem action=\"ZOUA\" />\
 \            <toolitem action=\"RRAA\" />\
 \            <toolitem action=\"RLAA\" />\
+\            <toolitem action=\"NEXA\" />\
+\            <toolitem action=\"BACA\" />\
 \            <separator />\
 \            <toolitem action=\"HLPA\" />\
 \           </toolbar>\
