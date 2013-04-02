@@ -1,3 +1,6 @@
+There has to be change in the semantics of creating a temp file. We will now create temp files only when any effect is applied . If only the image is being viwed then no temp file should be created.
+
+
 ISSUES
 -- get size of scolledwindow to resize
 -- store the filename of current file 
