@@ -82,14 +82,16 @@ okAction tmpFileName tmpFileName1 bwindow = do
   tmpFile <- readIORef tmpFileName
   myimg <- loadImgFile tmpFile
   saveImgFile (-1) tmpFile myimg
-  removeFile tmpFile1
+  val <- doesFileExist tmpFile1
+  if (val==True) then removeFile tmpFile1 else putStrLn "No file Present" 
   widgetDestroy bwindow
 ------------------------------------------------------------------------
 
 cancelAction tmpFileName tmpFileName1 bwindow canvas = do
   tmpFile1 <-readIORef tmpFileName1
   tmpFile <- readIORef tmpFileName
-  removeFile tmpFile1
+  val <- doesFileExist tmpFile1
+  if (val==True) then removeFile tmpFile1 else putStrLn "No file Present" 
   imageSetFromFile canvas tmpFile
   widgetDestroy bwindow
 ------------------------------------------------------------------------
