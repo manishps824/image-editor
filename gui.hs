@@ -21,6 +21,10 @@ main = do
   button5 <- xmlGetWidget xml castToButton "button5"
   button6 <- xmlGetWidget xml castToButton "button6"
   colorixeButton <- xmlGetWidget xml castToButton "button7"
+  invertButton <- xmlGetWidget xml castToButton "button8"
+  embossButton <- xmlGetWidget xml castToButton "button9"
+  meanButton <- xmlGetWidget xml castToButton "button10"
+  edgeButton <- xmlGetWidget xml castToButton "button11"
   
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
@@ -164,6 +168,11 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 -----------------------------------------------------------------------------
   onClicked button6 $ noArgEffect duoTone changeList tmpFileName canvas
   onClicked sepiaButton $ noArgEffect sepia changeList tmpFileName canvas    
+  onClicked button5 $ noArgEffect gaussianBlur changeList tmpFileName canvas    
+  onClicked invertButton $ noArgEffect negative changeList tmpFileName canvas    
+  onClicked embossButton $ noArgEffect emboss changeList tmpFileName canvas    
+  onClicked meanButton $ noArgEffect meanRemoval changeList tmpFileName canvas    
+  onClicked edgeButton $ noArgEffect edgeDetect changeList tmpFileName canvas    
 -----------------------------------------------------------------------------
   {-onClicked colorixeButton $ do
     bwindow <- windowNew
@@ -268,7 +277,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
    
     
 ----------------------------------------------------
-  onClicked button5 $ noArgEffect gaussianBlur changeList tmpFileName canvas    
+  
+--
   
 {--
     tmpFile1 <- readIORef tmpFileName1
