@@ -149,10 +149,14 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     originalPath <- readIORef fileName -- pick the original image
     tmpPath <- readIORef tmpFileName -- read temp image path for overwriting
     newImg <- undoLast effectList (loadImgFile originalPath) -- function that will apply all but last of the effects present in the list 
-    writeIORef changeList (init effectList)
     saveImgFile (-1) tmpPath newImg
     imageSetFromFile canvas tmpPath
-  
+    case effectList of
+      [] -> do
+        writeIORef changeList []
+      _ -> do
+        writeIORef changeList (init effectList)
+      
   
 --------------------------------------------------------------------- 
   onActionActivate zina $ zoomInOut zoomAmount tmpFileName canvas 1
