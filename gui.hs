@@ -356,7 +356,82 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     widgetShowAll myWin
     onDestroy myWin mainQuit
     mainGUI      
-   
+----------------------------------------------------
+  onClicked button3 $ do
+    tmpFile <- readIORef tmpFileName
+    myimg <- loadJpegFile tmpFile
+    (imWidth, imHeight) <- imageSize myimg
+    myimgCopy <- copyImage myimg
+    putStrLn (show imWidth)
+    myWin <- windowNew
+    set myWin [windowTitle := "Crop", windowDefaultWidth := truncate $ 1.2* (fromIntegral imWidth),
+     windowDefaultHeight := truncate $ 1.2*(fromIntegral imHeight),
+      containerBorderWidth := 10 ]
+    vb <- vBoxNew False 0
+    containerAdd myWin vb
+    myCanvas <- imageNewFromFile tmpFile
+    eb1 <- eventBoxNew
+    boxPackStart vb eb1 PackGrow 0
+    set eb1[containerChild := myCanvas]
+    miscSetAlignment myCanvas 0 0
+    
+    sep <- hSeparatorNew
+    boxPackStart vb sep PackGrow 10
+    hb <- hBoxNew False 0
+    boxPackStart vb hb PackGrow 0
+     
+    myok <- buttonNewWithLabel "Crop to Selection"
+    boxPackStart hb myok PackGrow 0     
+    mycancel <- buttonNewWithLabel "Cancel"
+    boxPackStart hb mycancel PackGrow 0
+    myclose <- buttonNewWithLabel "Close"
+    boxPackStart hb myclose PackGrow 0
+    widgetSetSensitivity myok False
+    widgetSetSensitivity mycancel False
+    --setCursor window Crosshair
+    
+    --set viewPort[containerChild := eb]
+    onButtonPress eb1 (\x -> do  
+							p5 <- miscGetAlignment myCanvas
+							p1 <- widgetGetPointer myCanvas
+							writeIORef upLeft p1
+							onButtonRelease eb1 
+								(\x -> do
+									p2 <- widgetGetPointer myCanvas
+									putStrLn ("Up Left: " ++ show p1)
+									putStrLn ("Down Right: " ++ show p2)
+									writeIORef downRight p2
+									tmpFile <- readIORef tmpFileName
+									myimg <- loadJpegFile tmpFile -- load image from this location 
+									cropRect myimg p1 p2
+									saveJpegFile (-1) tmpFile myimg
+									widgetSetSensitivity myok True
+									widgetSetSensitivity mycancel True
+									--setCursor window Arrow
+									imageSetFromFile myCanvas tmpFile
+									return True)
+							return (True))					 
+    putStrLn "Hello"
+    
+    onClicked myok $ do
+      p1 <- readIORef upLeft
+      p2 <- readIORef downRight
+      img1 <- crop myimg p1 p2
+      saveJpegFile (-1) tmpFile img1
+      imageSetFromFile canvas tmpFile
+      widgetDestroy myWin
+    onClicked mycancel $ do
+      saveJpegFile (-1) tmpFile myimgCopy
+      imageSetFromFile myCanvas tmpFile
+      widgetSetSensitivity myok False
+      widgetSetSensitivity mycancel False
+    onClicked myclose $ do
+      saveJpegFile (-1) tmpFile myimgCopy
+      widgetDestroy myWin  
+
+    widgetShowAll myWin
+    onDestroy myWin mainQuit
+    mainGUI        
     
 ----------------------------------------------------
   
