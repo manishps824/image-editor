@@ -67,6 +67,20 @@ loadImgFile fpath = do
     ".png" -> loadPngFile fpath
     ".gif" -> loadGifFile fpath
 ------------------------------------------------------------------------
+
+cropRect img (a,b) (c,d) = do
+  Graphics.GD.drawLine (a,b) (c,b) (rgb 254 254 254) img
+  Graphics.GD.drawLine (c,b) (c,d) (rgb 254 254 254) img
+  Graphics.GD.drawLine (a,d) (c,d) (rgb 254 254 254) img
+  Graphics.GD.drawLine (a,b) (a,d) (rgb 254 254 254) img
+------------------------------------------------------------------------    
+
+crop :: Graphics.GD.Image -> Graphics.GD.Point -> Graphics.GD.Point -> IO Graphics.GD.Image
+crop img (a,b) (c,d) = do
+  newimg <- newImage ((c-a),(d-b))
+  copyRegion (a,b) ((c-a),(d-b)) img (0,0) newimg
+  resizeImage (c-a) (d-b) newimg
+------------------------------------------------------------------------
     
 saveImgFile quality fpath image = do
   ext <- return (takeExtension fpath)
