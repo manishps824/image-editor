@@ -22,6 +22,10 @@ main = do
   button5 <- xmlGetWidget xml castToButton "button5"
   button6 <- xmlGetWidget xml castToButton "button6"
   colorixeButton <- xmlGetWidget xml castToButton "button7"
+  invertButton <- xmlGetWidget xml castToButton "button8"
+  embossButton <- xmlGetWidget xml castToButton "button9"
+  meanButton <- xmlGetWidget xml castToButton "button10"
+  edgeButton <- xmlGetWidget xml castToButton "button11"
   
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
@@ -148,10 +152,14 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     originalPath <- readIORef fileName -- pick the original image
     tmpPath <- readIORef tmpFileName -- read temp image path for overwriting
     newImg <- undoLast effectList (loadImgFile originalPath) -- function that will apply all but last of the effects present in the list 
-    writeIORef changeList (init effectList)
     saveImgFile (-1) tmpPath newImg
     imageSetFromFile canvas tmpPath
-  
+    case effectList of
+      [] -> do
+        writeIORef changeList []
+      _ -> do
+        writeIORef changeList (init effectList)
+      
   
 --------------------------------------------------------------------- 
   onActionActivate zina $ zoomInOut zoomAmount tmpFileName canvas 1
@@ -167,6 +175,11 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 -----------------------------------------------------------------------------
   onClicked button6 $ noArgEffect duoTone changeList tmpFileName canvas
   onClicked sepiaButton $ noArgEffect sepia changeList tmpFileName canvas    
+  onClicked button5 $ noArgEffect gaussianBlur changeList tmpFileName canvas    
+  onClicked invertButton $ noArgEffect negative changeList tmpFileName canvas    
+  onClicked embossButton $ noArgEffect emboss changeList tmpFileName canvas    
+  onClicked meanButton $ noArgEffect meanRemoval changeList tmpFileName canvas    
+  onClicked edgeButton $ noArgEffect edgeDetect changeList tmpFileName canvas    
 -----------------------------------------------------------------------------
   {-onClicked colorixeButton $ do
     bwindow <- windowNew
@@ -346,7 +359,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
    
     
 ----------------------------------------------------
-  onClicked button5 $ noArgEffect gaussianBlur changeList tmpFileName canvas    
+  
+--
   
 {--
     tmpFile1 <- readIORef tmpFileName1
