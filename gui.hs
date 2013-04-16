@@ -39,9 +39,6 @@ main = do
   sava <- actionNew "SAVA" "Save"    (Just "Save") (Just stockSave)
   svaa <- actionNew "SVAA" "Save As" (Just "Save As") (Just stockSaveAs)
   exia <- actionNew "EXIA" "Exit"    (Just "Exit") (Just stockQuit)
-  cuta <- actionNew "CUTA" "Cut"   (Just "Cut") (Just stockCut)    
-  copa <- actionNew "COPA" "Copy"  (Just "Copy") (Just stockCopy)
-  psta <- actionNew "PSTA" "Paste" (Just "Paste") (Just stockPaste)
   hlpa <- actionNew "HLPA" "Help"  (Just "help") (Just stockHelp)
   unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockGotoFirst)
   zina <- actionNew "ZINA" "Zoom In" (Just "Zoom In") (Just stockZoomIn)
@@ -58,7 +55,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa,nexa,baca]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,hlpa,unda,zina,zoua,rraa,rlaa,nexa,baca]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -80,13 +77,13 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,cuta,copa,psta,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
+  mapM_ prAct [fma,ema,hma,newa,sava,svaa,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
   
   expand <- newIORef True
   changeList <- newIORef []
   fileName <- newIORef ""
   tmpFileName <- newIORef ""
-  tmpFileName1 <- newIORef "" -- why Amitesh??
+  tmpFileName1 <- newIORef "" 
   zoomAmount <- newIORef 0
   myFileList <- newIORef (FileList [] [])
   upLeft <- newIORef (0,0)
@@ -113,10 +110,11 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
           putStrLn frontFile 
           basename <- return (takeBaseName frontFile)
           myimg <- loadImgFile frontFile  -- load image from this location 
-          saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code ir for future use
-          writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's ame
-          writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
-          imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
+          ext <- return (takeExtension frontFile)
+          saveImgFile (-1) (basename++"temp"++ext) myimg -- save temp file in code ir for future use
+          writeIORef tmpFileName (basename++"temp"++ext) -- remember temp file's ame
+          writeIORef tmpFileName1 (basename++"temp1"++ext) -- remember temp file's name
+          imageSetFromFile canvas (basename++"temp"++ext) -- render the image from temp file on canvas
           putStrLn $ "Opening File: " ++ frontFile
     
     
@@ -137,12 +135,12 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
           putStrLn frontFile 
           basename <- return (takeBaseName frontFile)
           myimg <- loadImgFile frontFile  -- load image from this location 
-          saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code ir for future use
-          writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's ame
-          writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
-          imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
+          ext <- return (takeExtension frontFile)
+          saveImgFile (-1) (basename++"temp"++ext) myimg -- save temp file in code ir for future use
+          writeIORef tmpFileName (basename++"temp"++ext) -- remember temp file's ame
+          writeIORef tmpFileName1 (basename++"temp1"++ext) -- remember temp file's name
+          imageSetFromFile canvas (basename++"temp"++ext) -- render the image from temp file on canvas
           putStrLn $ "Opening File: " ++ frontFile
-       
             
     
 --------------------------------------------------------------------------------------------------
@@ -168,6 +166,12 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
   onActionActivate rraa $ rotateA tmpFileName canvas 1
   onActionActivate rlaa $ rotateA tmpFileName canvas (-1)
 ---------------------------------------------------------------------    
+  onActionActivate sava $ do
+    fpath <- readIORef fileName
+    tmpFile <- readIORef tmpFileName
+    myImg <- loadImgFile tmpFile
+    saveImgFile (-1) fpath myImg
+      
   {--   
   Effects added : Grayscale,Brightness
   --}
@@ -431,79 +435,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 
     widgetShowAll myWin
     onDestroy myWin mainQuit
-    mainGUI        
-    
-----------------------------------------------------
-  
---
-  
-{--
-    tmpFile1 <- readIORef tmpFileName1
-    tmpFile <- readIORef tmpFileName
-    myimg <- loadImgFile tmpFile
-    saveImgFile (-1) tmpFile1 myimg
-    bwindow <- windowNew
-    set bwindow [windowTitle := "Gaussian Blur",
-              windowDefaultHeight := 100,
-              windowDefaultWidth := 200]
-    mainbox <- vBoxNew False 10
-    containerAdd bwindow mainbox
-    containerSetBorderWidth mainbox 10
-    box1 <- vBoxNew False 0
-    boxPackStart mainbox box1 PackNatural 0
-    adj1 <- adjustmentNew 0.0 0 10.0 1.0 1.0 1.0
-    hsc1 <- hScaleNew adj1
-    hbox1 <- hBoxNew False 0
-    hbox3 <- hBoxNew False 0
-    containerSetBorderWidth hbox3 10
-    boxPackStart hbox1 hsc1 PackGrow 0
-    okbutton <-buttonNewWithLabel "OK"
-    onClicked okbutton $ okAction tmpFileName tmpFileName1 bwindow
- 
-    cancelButton <- buttonNewWithLabel "Cancel"
-    onClicked cancelButton $ cancelAction tmpFileName tmpFileName1 bwindow canvas
-      
-    boxPackStart hbox3 okbutton PackGrow 0
-    boxPackStart hbox3 cancelButton PackGrow 0  
-    boxPackStart box1 hbox1 PackNatural 0
-    boxPackStart box1 hbox3 PackNatural 0
-    onValueChanged adj1 $ do 
-      tmpFile1 <- readIORef tmpFileName1
-      --val <- adjustmentGetValue adj1
-      --writeIORef tmpFileName tmpFile
-      myimg <- loadImgFile tmpFile1 -- load image from this location 
-      gaussianBlur myimg
-      saveImgFile (-1) tmpFile1 myimg
-      imageSetFromFile canvas tmpFile1
-      
-    widgetShowAll bwindow
-    onDestroy bwindow mainQuit
-    mainGUI  
---}
-
-{--
-    fch <- fileChooserWidgetNew FileChooserActionOpen
-    widgetShow fch
-    img <- imageNew
-    fileChooserSetPreviewWidget fch img
-    
-    onUpdatePreview fch $ do
-      file <- fileChooserGetPreviewFilename fch
-      case file of 
-        Nothing -> putStrLn "No file Secleted"
-        Just fpath -> imageSetFromFile img fpath
-        
-    onFileActivated fch $ do
-      dir <- fileChooserGetCurrentFolder fch
-      case dir of 
-        Just dpath -> putStrLn ("curr dir: "++ dpath)
-        Nothing -> putStrLn ("NOthing")
-      file <- fileChooserGetFilename fch
-      case file of
-        Just fpath -> putStrLn ("you selected;" ++ fpath)
-        Nothing -> putStrLn "Nothing"
-    widgetDestroy fch    
-    --}
+    mainGUI       
     
   widgetShowAll window  
   onDestroy window mainQuit
@@ -521,9 +453,6 @@ uiDecl=  "<ui>\
 \              <menuitem action=\"EXIA\" />\
 \            </menu>\
 \           <menu action=\"EMA\">\
-\              <menuitem action=\"CUTA\" />\
-\              <menuitem action=\"COPA\" />\
-\              <menuitem action=\"PSTA\" />\
 \              <menuitem action=\"UNDA\" />\
 \              <menuitem action=\"ZINA\" />\
 \              <menuitem action=\"ZOUA\" />\
@@ -541,9 +470,6 @@ uiDecl=  "<ui>\
 \            <toolitem action=\"SAVA\" />\
 \            <toolitem action=\"EXIA\" />\
 \            <separator />\
-\            <toolitem action=\"CUTA\" />\
-\            <toolitem action=\"COPA\" />\
-\            <toolitem action=\"PSTA\" />\
 \            <toolitem action=\"UNDA\" />\
 \            <toolitem action=\"ZINA\" />\
 \            <toolitem action=\"ZOUA\" />\
@@ -556,10 +482,3 @@ uiDecl=  "<ui>\
 \           </toolbar>\
 \          </ui>"
 
-{-
-printColor::Graphics.UI.Gtk.Color -> RGBA
-printColor (Color r g b) =let 
-						 rgb=		((fromIntegral r / 255) 
-									(fromIntegral g / 255)
-									(fromIntegral b / 255)
--}									

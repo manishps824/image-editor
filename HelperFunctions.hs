@@ -145,10 +145,11 @@ openAction fileName tmpFileName tmpFileName1 canvas myFileList =
             printFileList fileList
             -----------------------------------------------------
             myimg <- loadImgFile fpath  -- load image from tI don't know the reason why it failed, but my guess is that the cohis location 
-            saveImgFile (-1) (basename++"temp"++".jpeg") myimg -- save temp file in code dir for future use
-            writeIORef tmpFileName (basename++"temp"++".jpeg") -- remember temp file's name
-            writeIORef tmpFileName1 (basename++"temp1"++".jpeg") -- remember temp file's name
-            imageSetFromFile canvas (basename++"temp"++".jpeg") -- render the image from temp file on canvas
+            ext <- return (takeExtension fpath)
+            saveImgFile (-1) (basename++"temp"++ext) myimg -- save temp file in code dir for future use
+            writeIORef tmpFileName (basename++"temp"++ext) -- remember temp file's name
+            writeIORef tmpFileName1 (basename++"temp1"++ext) -- remember temp file's name
+            imageSetFromFile canvas (basename++"temp"++ext) -- render the image from temp file on canvas
             putStrLn $ "Opening File: " ++ fpath
           Nothing -> putStrLn "error: No file was selected"
     widgetDestroy fcd
