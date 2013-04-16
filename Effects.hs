@@ -7,6 +7,7 @@ import Data.IORef
 import System.FilePath.Posix
 import System.Directory -- for doesFileExist
 import HelperFunctions
+import Effects_edge
 -- add function signature here 
 zoomInOut zoomAmount tmpFileName canvas factor = 
   do         

@@ -10,6 +10,7 @@ import System.FilePath.Posix
 import System.Directory -- for doesFileExist
 import Effects
 import HelperFunctions
+import Effects_edge
 main = do
   initGUI
   Just xml <- xmlNew "editor.glade"
@@ -26,6 +27,8 @@ main = do
   embossButton <- xmlGetWidget xml castToButton "button9"
   meanButton <- xmlGetWidget xml castToButton "button10"
   edgeButton <- xmlGetWidget xml castToButton "button11"
+  yEdgeButton <- xmlGetWidget xml castToButton "button12"
+  xEdgeButton <- xmlGetWidget xml castToButton "button13"
   
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
@@ -182,7 +185,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
   onClicked invertButton $ noArgEffect negative changeList tmpFileName canvas    
   onClicked embossButton $ noArgEffect emboss changeList tmpFileName canvas    
   onClicked meanButton $ noArgEffect meanRemoval changeList tmpFileName canvas    
-  onClicked edgeButton $ noArgEffect edgeDetect changeList tmpFileName canvas    
+  onClicked edgeButton $ noArgEffect edgeDetect changeList tmpFileName canvas
+  onClicked yEdgeButton $ noArgEffect sobelY changeList tmpFileName canvas    
+  onClicked xEdgeButton $ noArgEffect sobelX changeList tmpFileName canvas        
 -----------------------------------------------------------------------------
   {-onClicked colorixeButton $ do
     bwindow <- windowNew
