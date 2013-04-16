@@ -34,10 +34,8 @@ main = do
   fma <- actionNew "FMA" "File" Nothing Nothing
   ema <- actionNew "EMA" "Edit" Nothing Nothing
   hma <- actionNew "HMA" "Help" Nothing Nothing
-  newa <- actionNew "NEWA" "New"     (Just "New Image") (Just stockNew)
   opna <- actionNew "OPNA" "Open"    (Just "Open Image") (Just stockOpen)
   sava <- actionNew "SAVA" "Save"    (Just "Save") (Just stockSave)
-  svaa <- actionNew "SVAA" "Save As" (Just "Save As") (Just stockSaveAs)
   exia <- actionNew "EXIA" "Exit"    (Just "Exit") (Just stockQuit)
   hlpa <- actionNew "HLPA" "Help"  (Just "help") (Just stockHelp)
   unda <- actionNew "UNDA" "Undo" (Just "Undo") (Just stockGotoFirst)
@@ -55,7 +53,7 @@ main = do
   -- mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
   mapM_ (actionGroupAddAction agr) [fma, ema, hma]
   -- set no shortcut keys for all except exit
-  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [newa,opna,sava,svaa,hlpa,unda,zina,zoua,rraa,rlaa,nexa,baca]
+  mapM_ (\ act -> actionGroupAddActionWithAccel agr act Nothing) [opna,sava,hlpa,unda,zina,zoua,rraa,rlaa,nexa,baca]
   -- The shortcut keys do not work
   actionGroupAddActionWithAccel agr exia (Just "<Control>e")
   
@@ -77,7 +75,7 @@ main = do
   onActionActivate exia (widgetDestroy window)
      --define the action handler for each action
      --right now it is same for each so using mapM_
-  mapM_ prAct [fma,ema,hma,newa,sava,svaa,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
+  mapM_ prAct [fma,ema,hma,sava,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
   
   expand <- newIORef True
   changeList <- newIORef []
@@ -92,8 +90,9 @@ main = do
   {--
 this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 --}
-  onActionActivate opna $ openAction fileName tmpFileName tmpFileName1 canvas myFileList
-    
+  onActionActivate opna $ do
+    openAction fileName tmpFileName tmpFileName1 canvas myFileList
+    writeIORef changeList []
 ----------------------------------------------------------------------------------    
   onActionActivate nexa $ do
     tempfileList <- readIORef myFileList
@@ -445,10 +444,8 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 uiDecl=  "<ui>\
 \           <menubar>\
 \            <menu action=\"FMA\">\
-\              <menuitem action=\"NEWA\" />\
 \              <menuitem action=\"OPNA\" />\
 \              <menuitem action=\"SAVA\" />\
-\              <menuitem action=\"SVAA\" />\
 \              <separator />\
 \              <menuitem action=\"EXIA\" />\
 \            </menu>\
@@ -465,7 +462,6 @@ uiDecl=  "<ui>\
 \            </menu>\
 \           </menubar>\
 \           <toolbar>\
-\            <toolitem action=\"NEWA\" />\
 \            <toolitem action=\"OPNA\" />\
 \            <toolitem action=\"SAVA\" />\
 \            <toolitem action=\"EXIA\" />\

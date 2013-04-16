@@ -94,7 +94,7 @@ saveImgFile quality fpath image = do
 okAction tmpFileName tmpFileName1 bwindow = do
   tmpFile1 <- readIORef tmpFileName1
   tmpFile <- readIORef tmpFileName
-  myimg <- loadImgFile tmpFile
+  myimg <- loadImgFile tmpFile1
   saveImgFile (-1) tmpFile myimg
   val <- doesFileExist tmpFile1
   if (val==True) then removeFile tmpFile1 else putStrLn "No file Present" 
