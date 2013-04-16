@@ -59,6 +59,7 @@ undoLast (x:xs) img = do
   undoLast xs (return tmpimg)
 ------------------------------------------------------------------------
 
+loadImgFile :: FilePath -> IO Graphics.GD.Image
 loadImgFile fpath = do
   ext <- return (takeExtension fpath)
   case ext of
@@ -68,6 +69,7 @@ loadImgFile fpath = do
     ".gif" -> loadGifFile fpath
 ------------------------------------------------------------------------
 
+cropRect :: Graphics.GD.Image -> (Int, Int) -> (Int, Int) -> IO ()
 cropRect img (a,b) (c,d) = do
   Graphics.GD.drawLine (a,b) (c,b) (rgb 254 254 254) img
   Graphics.GD.drawLine (c,b) (c,d) (rgb 254 254 254) img
@@ -82,12 +84,13 @@ crop img (a,b) (c,d) = do
   resizeImage (c-a) (d-b) newimg
 ------------------------------------------------------------------------
 
---newCrop :: Graphics.GD.Image -> (Graphics.GD.Point, Graphics.GD.Point) -> IO ()
+newCrop :: Graphics.GD.Image -> (FilePath, Graphics.GD.Point, Graphics.GD.Point) -> IO ()
 newCrop img (tmpFile, p1, p2) = do
   img1 <- crop img p1 p2
   saveImgFile (-1) tmpFile img1
 ------------------------------------------------------------------------
-    
+
+saveImgFile :: Int -> FilePath -> Graphics.GD.Image -> IO ()    
 saveImgFile quality fpath image = do
   ext <- return (takeExtension fpath)
   case ext of
@@ -96,7 +99,8 @@ saveImgFile quality fpath image = do
     ".png" -> savePngFile fpath image
     ".gif" -> saveGifFile fpath image
 ------------------------------------------------------------------------
-    
+
+okAction :: WidgetClass self => IORef FilePath -> IORef FilePath -> self -> IO ()    
 okAction tmpFileName tmpFileName1 bwindow = do
   tmpFile1 <- readIORef tmpFileName1
   tmpFile <- readIORef tmpFileName
@@ -107,6 +111,7 @@ okAction tmpFileName tmpFileName1 bwindow = do
   widgetDestroy bwindow
 ------------------------------------------------------------------------
 
+cancelAction :: WidgetClass self => IORef FilePath -> IORef FilePath -> self -> Graphics.UI.Gtk.Image -> IO ()
 cancelAction tmpFileName tmpFileName1 bwindow canvas = do
   tmpFile1 <-readIORef tmpFileName1
   tmpFile <- readIORef tmpFileName
@@ -115,11 +120,13 @@ cancelAction tmpFileName tmpFileName1 bwindow canvas = do
   imageSetFromFile canvas tmpFile
   widgetDestroy bwindow
 ------------------------------------------------------------------------
-  
+
+prAct :: ActionClass self => self -> IO (ConnectId self)  
 prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
 ------------------------------------------------------------------------
 
+printFileList :: FileList String -> IO ()
 printFileList (FileList a b) = do
                                   putStrLn "LIST 1"
                                   mapM putStrLn a
@@ -128,6 +135,7 @@ printFileList (FileList a b) = do
                                   putStrLn "-----------------"
 
 
+openAction :: IORef FilePath -> IORef [Char] -> IORef [Char] -> Graphics.UI.Gtk.Image -> IORef (FileList String) -> IO ()
 openAction fileName tmpFileName tmpFileName1 canvas myFileList = 
   do
     fcd <- fileChooserDialogNew (Just "Open File") Nothing FileChooserActionSave [("Cancel", ResponseCancel),("Open", ResponseAccept)] -- create a file chooser dialog
