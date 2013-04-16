@@ -81,6 +81,12 @@ crop img (a,b) (c,d) = do
   copyRegion (a,b) ((c-a),(d-b)) img (0,0) newimg
   resizeImage (c-a) (d-b) newimg
 ------------------------------------------------------------------------
+
+--newCrop :: Graphics.GD.Image -> (Graphics.GD.Point, Graphics.GD.Point) -> IO ()
+newCrop img (tmpFile, p1, p2) = do
+  img1 <- crop img p1 p2
+  saveImgFile (-1) tmpFile img1
+------------------------------------------------------------------------
     
 saveImgFile quality fpath image = do
   ext <- return (takeExtension fpath)
