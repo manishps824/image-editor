@@ -476,9 +476,13 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       p1 <- readIORef upLeft
       p2 <- readIORef downRight
       opList <- readIORef changeList
-      newCrop myimg (tmpFile, p1, p2)
-      writeIORef changeList (opList++[(flip (newCrop) (tmpFile, p1, p2))])
+      crop tmpFile p1 p2 myimg
+      --saveImgFile (-1) tmpFile myimg
+      print (length opList)
+      writeIORef changeList (opList++[crop tmpFile p1 p2])
       --newCrop img1 (p1,p2)
+      opList <- readIORef changeList
+      print (length opList)      
       imageSetFromFile canvas tmpFile
       widgetDestroy myWin
     onClicked mycancel $ do
@@ -491,7 +495,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       widgetDestroy myWin  
 
     widgetShowAll myWin
-    onDestroy myWin mainQuit
+    onDestroy myWin $mainQuit
     mainGUI       
     
   widgetShowAll window  
