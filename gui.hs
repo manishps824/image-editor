@@ -22,7 +22,7 @@ main = do
   sepiaButton <- xmlGetWidget xml castToButton "button4"
   button5 <- xmlGetWidget xml castToButton "button5"
   button6 <- xmlGetWidget xml castToButton "button6"
-  colorixeButton <- xmlGetWidget xml castToButton "button7"
+  colorizeButton <- xmlGetWidget xml castToButton "button7"
   invertButton <- xmlGetWidget xml castToButton "button8"
   embossButton <- xmlGetWidget xml castToButton "button9"
   meanButton <- xmlGetWidget xml castToButton "button10"
@@ -288,6 +288,133 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
     widgetShowAll bwindow
     onDestroy bwindow mainQuit
     mainGUI
+  onClicked colorizeButton $ do
+--     tmpFile <- readIORef tmpFileName	
+--     myimg <- loadImgFile tmpFile                  
+--     putStrLn "colorixed press"
+     bwindow <- windowNew
+     set bwindow [windowTitle := "Colorize the Image", windowDefaultHeight := 100, windowDefaultWidth := 300, containerBorderWidth := 10 ]
+     vb <- vBoxNew False 0
+     containerAdd bwindow vb
+     
+     rVal <- newIORef 0
+     gVal <- newIORef 0
+     bVal <- newIORef 0
+     oVal <- newIORef 0
+     
+     adj1 <- adjustmentNew 0 (-255) 255 1 1 1
+     adj2 <- adjustmentNew 0 (-255) 255 1 1 1
+     adj3 <- adjustmentNew 0 (-255) 255 1 1 1
+     adj4 <- adjustmentNew 0 (-127) 127 1 1 1
+     hsc1 <- hScaleNew adj1
+     hsc2 <- hScaleNew adj2
+     hsc3 <- hScaleNew adj3
+     hsc4 <- hScaleNew adj4
+     scaleSetDigits hsc1 0
+     scaleSetDigits hsc2 0
+     scaleSetDigits hsc3 0
+     scaleSetDigits hsc4 0
+     label1 <- labelNew (Just "Red offset:")
+     boxPackStart vb label1 PackNatural 0
+     boxPackStart vb hsc1 PackGrow 0
+     label2 <- labelNew (Just "Green offset:")
+     boxPackStart vb label2 PackNatural 0
+     boxPackStart vb hsc2 PackGrow 0
+     label3 <- labelNew (Just "Blue offset:")
+     boxPackStart vb label3 PackNatural 0
+     boxPackStart vb hsc3 PackGrow 0
+     label4 <- labelNew (Just "Opacity:")
+     boxPackStart vb label4 PackNatural 0
+     boxPackStart vb hsc4 PackGrow 0
+     sep <- hSeparatorNew
+     boxPackStart vb sep PackGrow 10
+     hb <- hBoxNew False 0
+     boxPackStart vb hb PackGrow 0
+     
+     myok <- buttonNewWithLabel "OK"
+     boxPackStart hb myok PackGrow 0
+     
+     mycancel <- buttonNewWithLabel "Cancel"
+     boxPackStart hb mycancel PackGrow 0
+     
+     onValueChanged adj1 $ do 
+      --putStrLn "Adj1" 
+      --myval <- adjustmentGetValue adj1
+      --putStrLn ""++myval
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj1
+      writeIORef rVal val
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadImgFile tmpFile -- load image from this location \
+      getR <- readIORef rVal
+      getG <- readIORef gVal
+      getB <- readIORef bVal
+      getO <- readIORef oVal
+      colorize myimg ((truncate getR), (truncate getG), (truncate getB), (truncate getO))
+      saveImgFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+    
+     onValueChanged adj2 $ do
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj2
+      writeIORef gVal val
+      
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadImgFile tmpFile -- load image from this location \
+      getR <- readIORef rVal
+      getG <- readIORef gVal
+      getB <- readIORef bVal
+      getO <- readIORef oVal
+      colorize myimg ((truncate getR), (truncate getG), (truncate getB), (truncate getO))
+      saveImgFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+     onValueChanged adj3 $ do
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj3
+      writeIORef bVal val
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadImgFile tmpFile -- load image from this location \
+      getR <- readIORef rVal
+      getG <- readIORef gVal
+      getB <- readIORef bVal
+      getO <- readIORef oVal
+      colorize myimg ((truncate getR), (truncate getG), (truncate getB), (truncate getO))
+      saveImgFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1
+     onValueChanged adj4 $ do
+      tmpFile <- readIORef tmpFileName
+      tmpFile1 <- readIORef tmpFileName1
+      val <- adjustmentGetValue adj4
+      writeIORef oVal val
+      --writeIORef tmpFileName tmpFile
+      myimg <- loadImgFile tmpFile -- load image from this location \
+      getR <- readIORef rVal
+      getG <- readIORef gVal
+      getB <- readIORef bVal
+      getO <- readIORef oVal
+      colorize myimg ((truncate getR), (truncate getG), (truncate getB), (truncate getO))
+      saveImgFile (-1) tmpFile1 myimg
+      imageSetFromFile canvas tmpFile1 
+      
+     onClicked myok $ do
+      getR <- readIORef rVal	
+      getG <- readIORef gVal
+      getB <- readIORef bVal
+      getO <- readIORef oVal
+     -- colorize myimg ((truncate getR), (truncate getG), (truncate getB), (truncate getO))
+      opList <- readIORef changeList
+      writeIORef changeList (opList++[(flip (colorize) ((truncate getR), (truncate getG), (truncate getB), (truncate getO)))])
+      okAction tmpFileName tmpFileName1 bwindow
+   
+     onClicked mycancel $ cancelAction tmpFileName tmpFileName1 bwindow canvas
+     
+     widgetShowAll bwindow
+     onDestroy bwindow mainQuit
+     mainGUI
+----------------------------------------    
 ---------------------------------------------------
   onClicked button3 $ do
     tmpFile <- readIORef tmpFileName
