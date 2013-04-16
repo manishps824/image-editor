@@ -287,7 +287,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 ---------------------------------------------------
   onClicked button3 $ do
     tmpFile <- readIORef tmpFileName
-    myimg <- loadJpegFile tmpFile
+    myimg <- loadImgFile tmpFile
     (imWidth, imHeight) <- imageSize myimg
     myimgCopy <- copyImage myimg
     putStrLn (show imWidth)
@@ -330,7 +330,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 									putStrLn ("Down Right: " ++ show p2)
 									writeIORef downRight p2
 									tmpFile <- readIORef tmpFileName
-									myimg <- loadJpegFile tmpFile -- load image from this location 
+									myimg <- loadImgFile tmpFile -- load image from this location 
 									cropRect myimg p1 p2
 									saveJpegFile (-1) tmpFile myimg
 									widgetSetSensitivity myok True
@@ -339,22 +339,22 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 									imageSetFromFile myCanvas tmpFile
 									return True)
 							return (True))					 
-    putStrLn "Hello"
+    --putStrLn "Hello"
     
     onClicked myok $ do
       p1 <- readIORef upLeft
       p2 <- readIORef downRight
       img1 <- crop myimg p1 p2
-      saveJpegFile (-1) tmpFile img1
+      saveImgFile (-1) tmpFile img1
       imageSetFromFile canvas tmpFile
       widgetDestroy myWin
     onClicked mycancel $ do
-      saveJpegFile (-1) tmpFile myimgCopy
+      saveImgFile (-1) tmpFile myimgCopy
       imageSetFromFile myCanvas tmpFile
       widgetSetSensitivity myok False
       widgetSetSensitivity mycancel False
     onClicked myclose $ do
-      saveJpegFile (-1) tmpFile myimgCopy
+      saveImgFile (-1) tmpFile myimgCopy
       widgetDestroy myWin  
 
     widgetShowAll myWin
@@ -363,7 +363,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 ----------------------------------------------------
   onClicked button3 $ do
     tmpFile <- readIORef tmpFileName
-    myimg <- loadJpegFile tmpFile
+    myimg <- loadImgFile tmpFile
     (imWidth, imHeight) <- imageSize myimg
     myimgCopy <- copyImage myimg
     putStrLn (show imWidth)
@@ -406,9 +406,9 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 									putStrLn ("Down Right: " ++ show p2)
 									writeIORef downRight p2
 									tmpFile <- readIORef tmpFileName
-									myimg <- loadJpegFile tmpFile -- load image from this location 
+									myimg <- loadImgFile tmpFile -- load image from this location 
 									cropRect myimg p1 p2
-									saveJpegFile (-1) tmpFile myimg
+									saveImgFile (-1) tmpFile myimg
 									widgetSetSensitivity myok True
 									widgetSetSensitivity mycancel True
 									--setCursor window Arrow
@@ -421,16 +421,16 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       p1 <- readIORef upLeft
       p2 <- readIORef downRight
       img1 <- crop myimg p1 p2
-      saveJpegFile (-1) tmpFile img1
+      saveImgFile (-1) tmpFile img1
       imageSetFromFile canvas tmpFile
       widgetDestroy myWin
     onClicked mycancel $ do
-      saveJpegFile (-1) tmpFile myimgCopy
+      saveImgFile (-1) tmpFile myimgCopy
       imageSetFromFile myCanvas tmpFile
       widgetSetSensitivity myok False
       widgetSetSensitivity mycancel False
     onClicked myclose $ do
-      saveJpegFile (-1) tmpFile myimgCopy
+      saveImgFile (-1) tmpFile myimgCopy
       widgetDestroy myWin  
 
     widgetShowAll myWin
