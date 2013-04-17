@@ -77,7 +77,8 @@ cropRect img (a,b) (c,d) = do
   Graphics.GD.drawLine (a,b) (a,d) (rgb 254 254 254) img
 ------------------------------------------------------------------------    
 
---crop :: Graphics.GD.Image -> Graphics.GD.Point -> Graphics.GD.Point -> IO Graphics.GD.Image
+crop :: FilePath -> (Int, Int) -> (Int, Int) -> Graphics.GD.Image -> IO ()
+
 crop tmpFile (a,b) (c,d) img = do
   newimg <- newImage ((c-a),(d-b))
   copyRegion (a,b)  ((c-a),(d-b)) img (0,0) newimg
