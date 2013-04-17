@@ -29,6 +29,7 @@ main = do
   edgeButton <- xmlGetWidget xml castToButton "button11"
   yEdgeButton <- xmlGetWidget xml castToButton "button12"
   xEdgeButton <- xmlGetWidget xml castToButton "button13"
+  addText <- xmlGetWidget xml castToButton "button14"
   
   canvas <- xmlGetWidget xml castToImage "image1"
   menubox <- xmlGetWidget xml castToVBox "vbox3"
@@ -89,6 +90,11 @@ main = do
   myFileList <- newIORef (FileList [] [])
   upLeft <- newIORef (0,0)
   downRight <- newIORef (0,0)
+  fontFamily <- newIORef "Sans"
+  fontSize <- newIORef 12.0
+  textColor <- newIORef (0, 0, 0)
+  textData <- newIORef ""
+  textPoint <- newIORef (0, 0)
 ------------------------------------------------------------------------------------------
   {--
 this requires fileName,tmpFilename,tmpFilename1,canvas for a function
@@ -460,7 +466,135 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
      widgetShowAll bwindow
      onDestroy bwindow mainQuit
      mainGUI
-----------------------------------------    
+----------------------------------------   
+  onClicked addText $ do
+    tmpFile <- readIORef tmpFileName
+    myimgCopy <- loadImgFile tmpFile
+    (imWidth, imHeight) <- imageSize myimgCopy
+    myWin1 <- windowNew
+    set myWin1 [windowTitle := "Add text to Image", windowDefaultWidth := truncate $ 1.2* (fromIntegral imWidth),
+     windowDefaultHeight := truncate $ 1.2*(fromIntegral imHeight),
+      containerBorderWidth := 10 ]
+    vb <- vBoxNew False 0
+    containerAdd myWin1 vb
+    myCanvas <- imageNewFromFile tmpFile
+    eb1 <- eventBoxNew
+    boxPackStart vb eb1 PackGrow 0
+    set eb1[containerChild := myCanvas]
+    miscSetAlignment myCanvas 0 0
+    
+    sep1 <- hSeparatorNew
+    boxPackStart vb sep1 PackGrow 10
+    mylab <- labelNew (Just "Click on the image to specify the start point of the text")
+    boxPackStart vb mylab PackGrow 0
+    sep2 <- hSeparatorNew
+    boxPackStart vb sep2 PackGrow 10
+    hb <- hBoxNew False 0
+    boxPackStart vb hb PackGrow 0
+     
+    myok1 <- buttonNewWithLabel "OK" 
+    boxPackStart hb myok1 PackGrow 0
+    mycancel1 <- buttonNewWithLabel "Cancel"
+    boxPackStart hb mycancel1 PackGrow 0
+    myclose1 <- buttonNewWithLabel "Close"
+    boxPackStart hb myclose1 PackGrow 0
+    widgetSetSensitivity myok1 False  
+    widgetSetSensitivity mycancel1 False
+    onButtonPress eb1 (\x -> do  
+							p1 <- widgetGetPointer myCanvas
+							writeIORef textPoint p1
+							myWin2 <- windowNew
+							set myWin2 [windowTitle := "Add text to Image", windowDefaultHeight := 100, windowDefaultWidth := 300, containerBorderWidth := 10 ]
+							vb <- vBoxNew False 0
+							containerAdd myWin2 vb
+							qtlab <- entryNew
+							boxPackStart vb qtlab PackGrow 0
+
+							sep <- hSeparatorNew
+							boxPackStart vb sep PackGrow 10
+							fntb <- fontButtonNew
+							boxPackStart vb fntb PackGrow 0
+							colb <- colorButtonNew
+							boxPackStart vb colb PackGrow 0
+							sep2 <- hSeparatorNew
+							boxPackStart vb sep2 PackGrow 10
+							hb <- hBoxNew False 0
+							boxPackStart vb hb PackGrow 0
+							myok <- buttonNewWithLabel "OK"
+							boxPackStart hb myok PackGrow 0
+							mycancel <- buttonNewWithLabel "Cancel"
+							boxPackStart hb mycancel PackGrow 0
+							
+							onFontSet fntb $ do 
+							  name <- fontButtonGetFontName fntb
+							  putStrLn (show name)
+							  fdesc <- fontDescriptionFromString name
+							  myFamily <- fontDescriptionGetFamily fdesc
+							  myWeight <- fontDescriptionGetWeight fdesc
+							  mySize <- fontDescriptionGetSize fdesc
+							  myStyle <- fontDescriptionGetStyle fdesc
+							  fontStr <- getFontFamily myFamily
+							  writeIORef fontFamily fontStr
+							  sizeStr <- getFontSize mySize
+							  writeIORef fontSize sizeStr
+							  widgetModifyFont qtlab (Just fdesc)
+							onColorSet colb $ do 
+							  colour <- colorButtonGetColor colb
+							  widgetModifyFg qtlab StateNormal colour
+							  putStrLn (show  colour)
+							  (r, g, b) <- getMyCol colour
+							  writeIORef textColor (r, g, b)
+							onClicked myok $ do
+							  imFontFamily <- readIORef fontFamily
+							  imFontSize <- readIORef fontSize
+							  (imR, imG, imB) <- readIORef textColor
+							  putStrLn ((show imR) ++ " " ++ (show imG)  ++ " " ++ (show imB))
+							  imTxt <- entryGetText qtlab
+							  writeIORef textData imTxt
+							  putStrLn imTxt
+							  putStrLn imFontFamily
+							  putStrLn $ show imFontSize
+							  myimg <- loadImgFile tmpFile
+							  drawString1 ("./fonts/" ++ imFontFamily ++ ".ttf") imFontSize 0 p1 imTxt (rgb imR imG imB) myimg 
+							  saveImgFile (-1) tmpFile myimg
+							  imageSetFromFile myCanvas tmpFile
+							  widgetDestroy myWin2
+							  widgetSetSensitivity myok1 True  
+							  widgetSetSensitivity mycancel1 True
+							  putStrLn "ok in win2"
+							onClicked mycancel $ do
+							  widgetDestroy myWin2
+							  putStrLn "cancel in win2"
+							widgetShowAll myWin2
+							onDestroy myWin2 mainQuit
+							mainGUI
+							return (True))					 
+    onClicked myclose1 $ do
+      saveImgFile (-1) tmpFile myimgCopy
+      widgetDestroy myWin1
+      putStrLn "close in win1"
+    onClicked mycancel1 $ do
+      saveImgFile (-1) tmpFile myimgCopy
+      imageSetFromFile myCanvas tmpFile
+      widgetSetSensitivity myok1 False
+      widgetSetSensitivity mycancel1 False
+      putStrLn "cancel in win1"
+    onClicked myok1 $ do
+      opList <- readIORef changeList
+      imFontFamily <- readIORef fontFamily
+      imFontSize <- readIORef fontSize
+      p1 <- readIORef textPoint
+      myData <- readIORef textData
+      (imR, imG, imB) <- readIORef textColor
+      writeIORef changeList (opList++[(drawString1 imFontFamily imFontSize 0 p1 myData (rgb imR imG imB))])
+      imageSetFromFile canvas tmpFile
+      widgetDestroy myWin1
+      putStrLn "ok in win1"
+         
+    widgetShowAll myWin1
+    onDestroy myWin1 mainQuit
+    mainGUI
+    putStrLn "Hello" 
 ---------------------------------------------------
   onClicked button3 $ do
     tmpFile <- readIORef tmpFileName
@@ -509,7 +643,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 									tmpFile <- readIORef tmpFileName
 									myimg <- loadImgFile tmpFile -- load image from this location 
 									cropRect myimg p1 p2
-									saveJpegFile (-1) tmpFile myimg
+									saveImgFile (-1) tmpFile myimg
 									widgetSetSensitivity myok True
 									widgetSetSensitivity mycancel True
 									--setCursor window Arrow

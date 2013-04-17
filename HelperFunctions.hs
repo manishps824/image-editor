@@ -131,6 +131,27 @@ prAct a = onActionActivate a $ do name <- actionGetName a
                                   putStrLn ("Action Name: " ++ name)  
 ------------------------------------------------------------------------
 
+getMyCol :: (Integral t, Integral t1, Integral t2, Monad m) => Graphics.UI.Gtk.Color -> m (t, t1, t2)
+getMyCol (Color a b c) = do return ((((fromIntegral a) * 255) `div` 65535), (((fromIntegral b) * 255) `div` 65535), (((fromIntegral c) * 255) `div` 65535))
+
+getFontFamily :: Monad m => Maybe a -> m a                              
+getFontFamily (Just a) = do return a
+
+getFontSize :: Monad m => Maybe a -> m a
+getFontSize (Just a) = do return a
+
+getFontWeight :: Monad m => Maybe a -> m a
+getFontWeight (Just a) = do return a
+
+getFontSt :: Monad m => Maybe a -> m a
+getFontSt (Just a) = do return a
+
+drawString1 :: String -> Double -> Double -> Graphics.GD.Point -> String -> Graphics.GD.Color -> Graphics.GD.Image -> IO ()
+drawString1 imFontFamily imFontSize angle p1 imTxt color myimg = do 
+  drawString imFontFamily imFontSize angle p1 imTxt color myimg
+  putStrLn "draw"
+------------------------------------------------------------------------
+
 printFileList :: FileList String -> IO ()
 printFileList (FileList a b) = do
                                   putStrLn "LIST 1"
