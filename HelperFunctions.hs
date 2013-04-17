@@ -111,6 +111,7 @@ okAction tmpFileName tmpFileName1 bwindow = do
   saveImgFile (-1) tmpFile myimg
   val <- doesFileExist tmpFile1
   if (val==True) then removeFile tmpFile1 else putStrLn "No file Present" 
+  if (val==True) then removeFile tmpFile else putStrLn "No file Present" 
   widgetDestroy bwindow
 ------------------------------------------------------------------------
 
