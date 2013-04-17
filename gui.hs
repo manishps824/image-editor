@@ -75,7 +75,7 @@ main = do
         Nothing -> error "Cannot get toolbar from string." 
   boxPackStart menubox toolbar PackNatural 0
   --actionSetSensitive cuta False
-  onActionActivate exia (widgetDestroy window)
+  
      --define the action handler for each action
      --right now it is same for each so using mapM_
   mapM_ prAct [fma,ema,hma,sava,hlpa,unda,zina,zoua,rraa,rlaa,baca,nexa] -- add any new button for menubar here for rendering
@@ -93,6 +93,51 @@ main = do
   {--
 this requires fileName,tmpFilename,tmpFilename1,canvas for a function
 --}
+  
+  onActionActivate exia $ do 
+    effectList <- readIORef changeList
+    case effectList of               
+      [] -> do
+        --(widgetDestroy window)
+        
+        tmpFile <- readIORef tmpFileName
+        val <- doesFileExist tmpFile
+        if (val==True) then removeFile tmpFile else putStrLn "No file Present"
+        mainQuit
+      _ -> do
+         bwindow <- windowNew
+         set bwindow [windowTitle := "Save the changes?", windowDefaultHeight := 100, windowDefaultWidth := 300, containerBorderWidth := 10 ]
+         vb <- vBoxNew False 0
+         containerAdd bwindow vb
+         hb <- hBoxNew False 0
+         boxPackStart vb hb PackGrow 0
+         myok <- buttonNewWithLabel "OK"
+         boxPackStart hb myok PackGrow 0
+         mycancel <- buttonNewWithLabel "Cancel"
+         boxPackStart hb mycancel PackGrow 0
+         onClicked myok $ do
+           putStrLn "HELLLLLLO"
+           tmpFile1 <- readIORef tmpFileName
+           originalFileName <- readIORef fileName
+           img <- loadImgFile tmpFile1
+           saveImgFile (-1) originalFileName img
+           widgetDestroy bwindow	
+           --widgetDestroy window
+           val <- doesFileExist tmpFile1
+           if (val==True) then removeFile tmpFile1 else putStrLn "No file Present"
+           mainQuit
+         onClicked mycancel $ do 
+           widgetDestroy bwindow
+           --widgetDestroy window
+           tmpFile <- readIORef tmpFileName
+           val <- doesFileExist tmpFile
+           if (val==True) then removeFile tmpFile else putStrLn "No file Present"
+           mainQuit
+         widgetShowAll bwindow  
+         onDestroy bwindow mainQuit
+         print "hello"
+
+  
   onActionActivate opna $ do
     openAction fileName tmpFileName tmpFileName1 canvas myFileList
     writeIORef changeList []
@@ -159,6 +204,7 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
         writeIORef changeList []
       _ -> do
         writeIORef changeList (init effectList)
+        
       
   
 --------------------------------------------------------------------- 
@@ -495,11 +541,53 @@ this requires fileName,tmpFilename,tmpFilename1,canvas for a function
       widgetDestroy myWin  
 
     widgetShowAll myWin
-    onDestroy myWin $mainQuit
+    onDestroy myWin mainQuit
     mainGUI       
     
   widgetShowAll window  
-  onDestroy window mainQuit
+  onDestroy window $ do 
+    effectList <- readIORef changeList
+    case effectList of               
+      [] -> do
+         tmpFile <- readIORef tmpFileName
+         val <- doesFileExist tmpFile
+         if (val==True) then removeFile tmpFile else putStrLn "No file Present"
+         mainQuit
+      _ -> do
+         bwindow <- windowNew
+         set bwindow [windowTitle := "Save the changes?", windowDefaultHeight := 100, windowDefaultWidth := 300, containerBorderWidth := 10 ]
+         vb <- vBoxNew False 0
+         containerAdd bwindow vb
+         hb <- hBoxNew False 0
+         boxPackStart vb hb PackGrow 0
+         myok <- buttonNewWithLabel "OK"
+         boxPackStart hb myok PackGrow 0
+         mycancel <- buttonNewWithLabel "Cancel"
+         boxPackStart hb mycancel PackGrow 0
+         onClicked myok $ do
+           putStrLn "HELLLLLLO"
+           tmpFile1 <- readIORef tmpFileName
+           originalFileName <- readIORef fileName
+           img <- loadImgFile tmpFile1
+           saveImgFile (-1) originalFileName img
+           widgetDestroy bwindow
+           val <- doesFileExist tmpFile1
+           if (val==True) then removeFile tmpFile1 else putStrLn "No file Present"
+           mainQuit
+           --widgetDestroy window
+         onClicked mycancel $ do 
+           widgetDestroy bwindow
+           tmpFile <- readIORef tmpFileName
+           val <- doesFileExist tmpFile
+           if (val==True) then removeFile tmpFile else putStrLn "No file Present"
+           --mainQuit
+           --widgetDestroy window
+           mainQuit
+         widgetShowAll bwindow
+         print "EMPTY" 
+  --tmpFile <- readIORef tmpFileName
+  --val <- doesFileExist tmpFile
+  --if (val==True) then removeFile tmpFile else putStrLn "No file Present" 
   mainGUI
      
 uiDecl=  "<ui>\
