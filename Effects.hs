@@ -8,7 +8,9 @@ import System.FilePath.Posix
 import System.Directory -- for doesFileExist
 import HelperFunctions
 import Effects_edge
--- add function signature here 
+
+zoomInOut :: (Integral a, Show a) => IORef a -> IORef FilePath -> Graphics.UI.Gtk.Image -> a -> IO ()
+
 zoomInOut zoomAmount tmpFileName canvas factor = 
   do         
     zAmnt <- readIORef zoomAmount -- read the zoom amount
@@ -24,7 +26,8 @@ zoomInOut zoomAmount tmpFileName canvas factor =
     imageSetFromPixbuf canvas pix -- finally set the scaled pixbuf to canvas
 
 
--- add function signature here
+rotateA :: IORef FilePath -> Graphics.UI.Gtk.Image -> Int -> IO ()
+
 rotateA tmpFileName canvas factor = 
   do   
     tmpFile <- readIORef tmpFileName
@@ -32,6 +35,9 @@ rotateA tmpFileName canvas factor =
     newImage<-rotateImage (45*factor) image
     saveImgFile (-1) tmpFile newImage
     imageSetFromFile canvas tmpFile
+
+
+noArgEffect :: (Graphics.GD.Image -> IO a) -> IORef [Graphics.GD.Image -> IO a] -> IORef FilePath -> Graphics.UI.Gtk.Image -> IO ()
 
 noArgEffect f changeList tmpFileName canvas = 
   do
